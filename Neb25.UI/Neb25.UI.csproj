@@ -8,4 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Neb25.Core\Neb25.Core.csproj" />
+  </ItemGroup>
+
 </Project>
