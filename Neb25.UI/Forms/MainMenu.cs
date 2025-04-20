@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Neb25.Core;
 using System.Collections.Generic;
+using Neb25.Core.Galaxy;
 
 namespace Neb25.UI.Forms
 {
@@ -21,8 +22,9 @@ namespace Neb25.UI.Forms
 
 		private void btnNewGame_Click(object sender, EventArgs e)
 		{
-			int numberOfStars = 100;
-			Galaxy generatedGalaxy = GalaxyGenerator.GenerateGalaxy(numberOfStars);
+			int numberOfStars = 10000;
+			int galaxyRadius = 1000; 
+			Galaxy generatedGalaxy = GalaxyGenerator.GenerateGalaxy(numberOfStars, galaxyRadius);
 
 			if (generatedGalaxy != null)
 			{

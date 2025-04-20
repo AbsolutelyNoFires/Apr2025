@@ -1,6 +1,6 @@
 ﻿namespace Neb25.UI.Forms
 {
-	partial class Game
+	partial class Form1
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -28,38 +28,33 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			galaxyPictureBox = new PictureBox();
-			((System.ComponentModel.ISupportInitialize)galaxyPictureBox).BeginInit();
+			pictureBox1_rename = new PictureBox();
+			((System.ComponentModel.ISupportInitialize)pictureBox1_rename).BeginInit();
 			SuspendLayout();
 			// 
-			// galaxyPictureBox
+			// pictureBox1_rename
 			// 
-			galaxyPictureBox.Dock = DockStyle.Fill;
-			galaxyPictureBox.Location = new Point(0, 0);
-			galaxyPictureBox.Name = "galaxyPictureBox";
-			galaxyPictureBox.Size = new Size(800, 450);
-			galaxyPictureBox.TabIndex = 0;
-			galaxyPictureBox.TabStop = false;
-			galaxyPictureBox.Click += galaxyPictureBox_Click;
+			pictureBox1_rename.Location = new Point(85, 89);
+			pictureBox1_rename.Name = "pictureBox1_rename";
+			pictureBox1_rename.Size = new Size(100, 50);
+			pictureBox1_rename.TabIndex = 0;
+			pictureBox1_rename.TabStop = false;
+			pictureBox1_rename.Click += pictureBox1_rename_Click;
 			// 
-			// Game
+			// Form1
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
-			Controls.Add(galaxyPictureBox);
-			Name = "Game";
-			Text = "Game";
-			((System.ComponentModel.ISupportInitialize)galaxyPictureBox).EndInit();
+			Controls.Add(pictureBox1_rename);
+			Name = "Form1";
+			Text = "Form1";
+			((System.ComponentModel.ISupportInitialize)pictureBox1_rename).EndInit();
 			ResumeLayout(false);
 		}
 
 		#endregion
 
-		private PictureBox galaxyPictureBox;
-		private void galaxyPictureBox_Click(object sender, EventArgs e)
-		{
-
-		}
+		private PictureBox pictureBox1_rename;
 	}
 }
