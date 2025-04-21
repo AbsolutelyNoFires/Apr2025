@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Neb25.Core.Utils;
 
 namespace Neb25.Core.Galaxy
 {
@@ -15,36 +16,26 @@ namespace Neb25.Core.Galaxy
 	public static class GalaxyGenerator
 	{
 
-		private const int MinNeighbors = 4;
-		private const int MaxNeighbors = 8;
-		private const int KNearest = 15; // How many nearest neighbors to consider for potential links
-		private const float MaxConnectionDistanceMultiplier = 2f; // Allow connections slightly further than the closest neighbor distance
-
 		/// <summary>
 		/// <summary>
 		/// Generates a new galaxy based on the specified parameters.
 		/// </summary>
 		/// <param name="numSystems">The number of star systems to generate.</param>
-		/// <param name="galaxyRadius">The approximate radius of the galaxy.</param>
+		/// <param name="seed">A consistent RNG to use.</param>
 		/// <returns>A newly generated Galaxy object.</returns>
-		public static Galaxy GenerateGalaxy(int numSystems, float galaxyRadius)
+		public static Galaxy GenerateGalaxy(int numSystems, Random seed)
 		{
-			var galaxy = new Galaxy("My new galaxy");
-			var random = new Random(); // Use a single Random instance
-
-
-
-			// --- Step 1: Generate Systems and Positions ---
-			// (Spiral galaxy generation logic as before)
-			int numArms = random.Next(2, 5);
+			Galaxy galaxy = new();
+			
+			int numArms = seed.Next(2, 8);
 			float armSeparationDistance = (float)(2 * Math.PI / numArms);
 			float armOffsetMax = 0.5f;
-			float coreRadius = galaxyRadius * 0.1f;
+			float galaxyRadius = 1000f;
 
 			for (int i = 0; i < numSystems; i++)
 			{
-				float angle = (float)(random.NextDouble() * 2 * Math.PI);
-				float dist = (float)(random.NextDouble() * galaxyRadius);
+				float angle = (float)(seed.NextDouble() * 2 * Math.PI);
+				float dist = (float)(seed.NextDouble() * galaxyRadius);
 				float armIndex = (angle / armSeparationDistance);
 				float armAngle = (float)Math.Floor(armIndex) * armSeparationDistance;
 				float armOffset = (armIndex - (float)Math.Floor(armIndex) - 0.5f) * armSeparationDistance * armOffsetMax;
@@ -54,21 +45,24 @@ namespace Neb25.Core.Galaxy
 				float x = dist * (float)Math.Cos(rotatedAngle);
 				float y = dist * (float)Math.Sin(rotatedAngle);
 				float zStdDev = galaxyRadius * 0.05f * (1.0f - (dist / galaxyRadius));
-				float z = (float)(SampleGaussian(random, 0, zStdDev));
+				float z = (float)(SampleGaussian(seed, 0, zStdDev));
 
-				var system = new StarSystem($"System {i + 1}")
+				String starType = new(String.Empty);
+				if (seed.NextDouble() > 0.5) { starType = "Red Dwarf"; } else { starType = "Blue Giant"; }
+
+				var system = new StarSystem()
 				{
 					Position = new Vector3(x, y, z)
 				};
-				GenerateStarSystemDetails(system, random);
+				GenerateStarSystemDetails(system, seed);
 				galaxy.StarSystems.Add(system);
 			}
 
 			// --- Step 2: Generate Connections ---
 			if (galaxy.StarSystems.Count > 1) // Need at least 2 systems to connect
 			{
-				GenerateConnections(galaxy, random);
-				EnsureConnectivity(galaxy, random);
+				GenerateConnections(galaxy, seed);
+				EnsureConnectivity(galaxy, seed);
 			}
 
 			return galaxy;
@@ -77,17 +71,15 @@ namespace Neb25.Core.Galaxy
 
 
 		/// <summary>
-		/// Generates hyperlane connections between star systems in the galaxy.
-		/// Tries to connect available jump sites based on proximity, aiming for more connections.
+		/// Iterates the galaxy for disconnect jump points, and finds a partner for each.
 		/// </summary>
 		/// <param name="galaxy">The galaxy containing the star systems.</param>
 		/// <param name="random">The random number generator.</param>
-		private static void GenerateConnections(Galaxy galaxy, Random random)
+		private static void GenerateConnections(Galaxy galaxy, Random seed)
 		{
-			var allSystems = galaxy.StarSystems;
+			List<StarSystem> allSystems = galaxy.StarSystems;
 			if (allSystems.Count < 2) return;
 
-			// Iterate through each system to try and establish connections FOR its available sites
 			foreach (var currentSystem in allSystems)
 			{
 				// Find K nearest neighbors (excluding self) once per system
@@ -95,15 +87,15 @@ namespace Neb25.Core.Galaxy
 					.Where(s => s != currentSystem)
 					.Select(s => new { System = s, DistanceSq = Vector3.DistanceSquared(currentSystem.Position, s.Position) })
 					.OrderBy(s => s.DistanceSq)
-					.Take(KNearest)
+					.Take(Utils.Constants.KNearest)
 					.ToList();
 
 				// Determine a max distance based on the closest neighbor
-				float maxDistSq = neighbors.Any() ? neighbors.First().DistanceSq * MaxConnectionDistanceMultiplier * MaxConnectionDistanceMultiplier : float.MaxValue;
+				float maxDistSq = neighbors.Any() ? neighbors.First().DistanceSq * Utils.Constants.MaxConnectionDistanceMultiplier * Utils.Constants.MaxConnectionDistanceMultiplier : float.MaxValue;
 
 				// Get available (unpartnered) jump sites in the current system
 				// Shuffle to add some randomness to which site gets picked first
-				var availableSites = currentSystem.JumpSites.Where(js => !js.HasPartner).OrderBy(x => random.Next()).ToList();
+				var availableSites = currentSystem.JumpSites.Where(js => !js.HasPartner).OrderBy(x => seed.Next()).ToList();
 
 				// Try to connect each available site of the current system
 				foreach (var site in availableSites)
@@ -119,6 +111,10 @@ namespace Neb25.Core.Galaxy
 					// Iterate through neighbors sorted by distance
 					foreach (var neighborInfo in neighbors)
 					{
+						
+						//List<StarSystems> alreadyConnected = site.ParentStarSystem.JumpSites
+						if (neighborInfo.System.ConnectedStarSystems.Contains(currentSystem)) continue; // Skip if already connected
+
 						// Check distance limit (redundant if neighbors list is already limited, but safe)
 						if (neighborInfo.DistanceSq > bestDistSq) continue; // Don't consider if further than current best or max allowed
 
@@ -126,7 +122,7 @@ namespace Neb25.Core.Galaxy
 
 						// Find the first available partner site in this neighbor
 						var partnerSite = potentialPartnerSystem.JumpSites
-											.FirstOrDefault(pjs => !pjs.HasPartner);
+							.FirstOrDefault(pjs => !pjs.HasPartner);
 
 						// If an available site is found in this neighbor
 						if (partnerSite != null)
@@ -156,6 +152,8 @@ namespace Neb25.Core.Galaxy
 							site.HasPartner = true;
 							bestPartnerSite.Partner = site;
 							bestPartnerSite.HasPartner = true;
+							targetSystem.ConnectedStarSystems.Add(currentSystem); // Add the connection to the target system
+							currentSystem.ConnectedStarSystems.Add(targetSystem); // Add the connection to the current system
 						}
 					}
 				} // End loop through available sites for the current system
@@ -319,10 +317,10 @@ namespace Neb25.Core.Galaxy
 		/// </summary>
 		/// <param name="system">The star system to populate.</param>
 		/// <param name="random">The random number generator to use.</param>
-		private static void GenerateStarSystemDetails(StarSystem system, Random random)
+		private static void GenerateStarSystemDetails(StarSystem system, Random seed)
 		{
 			// Simple planet generation: Add a random number of planets
-			int numPlanets = random.Next(0, 9); // 0 to 8 planets
+			int numPlanets = seed.Next(0, 9); // 0 to 8 planets
 
 			for (int i = 0; i < numPlanets; i++)
 			{
@@ -331,19 +329,32 @@ namespace Neb25.Core.Galaxy
 				system.Planets.Add(planet);
 			}
 
-			int numJumpSites = random.Next(MinNeighbors, MaxNeighbors + 1); // Generate between Min and Max neighbors
-			for (int i = 0; i < numJumpSites; i++)
+
+
+			bool ExceptionalSystem = seed.NextDouble() > Utils.Constants.BiasFactor;
+			int numJumpSites = 0;
+			if (ExceptionalSystem)
+			{
+				numJumpSites = seed.Next(Utils.Constants.MinSysJps, Utils.Constants.MaxSysJps + 1);
+			}
+			else
+			{
+				numJumpSites = seed.Next(Utils.Constants.PrefMinSysJps, Utils.Constants.PrefMaxSysJps + 1);
+			}
+			
+				
+				for (int i = 0; i < numJumpSites; i++)
 			{
 				// Position the jump site randomly within a certain radius of the star
 				// For simplicity, let's place them relative to the system position for now.
 				// A better approach would be relative to the primary star (0,0,0) within the system view.
 				float jumpSiteRadius = 50f; // Example radius within system
-				float angle = (float)(random.NextDouble() * 2 * Math.PI);
-				float dist = (float)(random.NextDouble() * jumpSiteRadius);
+				float angle = (float)(seed.NextDouble() * 2 * Math.PI);
+				float dist = (float)(seed.NextDouble() * jumpSiteRadius);
 				Vector3 jumpSitePos = new Vector3(
 					dist * (float)Math.Cos(angle),
 					dist * (float)Math.Sin(angle),
-					(float)SampleGaussian(random, 0, jumpSiteRadius * 0.1) // Small Z variation
+					(float)SampleGaussian(seed, 0, jumpSiteRadius * 0.1) // Small Z variation
 				);
 
 				var jumpSite = new JumpSite(system, i + 1) { Position = jumpSitePos };

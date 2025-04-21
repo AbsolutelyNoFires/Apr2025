@@ -27,7 +27,12 @@ namespace Neb25.Core.Galaxy
 		/// <summary>
 		/// Gets the list of stars within this star system.
 		/// </summary>
-		public List<Star> Stars { get; } = new List<Star>(); 
+		public List<Star> Stars { get; } = new List<Star>();
+
+		/// <summary>
+		/// Gets sets the primary star of this star system.
+		/// </summary>
+		public Star PrimaryStar { get; set; }
 
 		/// <summary>
 		/// Gets the list of planets within this star system.
@@ -39,16 +44,23 @@ namespace Neb25.Core.Galaxy
 		/// </summary>
 		public List<JumpSite> JumpSites { get; } = new List<JumpSite>();
 
+		/// <summary>
+		/// Gets the list connected star systems.
+		/// </summary>
+		public List<StarSystem> ConnectedStarSystems { get; set; } = new List<StarSystem>();
+
+
+
 		// TODO: Add properties for star type, resources, owner empire, etc.
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StarSystem"/> class.
 		/// </summary>
 		/// <param name="name">The name of the star system.</param>
-		public StarSystem(string name)
+		public StarSystem()
 		{
 			Id = Guid.NewGuid();
-			Name = name;
+			Name = "Star: " + Id.ToString().Substring(27);
 			Position = Vector3.Zero; // Default position
 									 // Planets list is initialized above
 		}

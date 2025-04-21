@@ -19,7 +19,7 @@ namespace Neb25.Core.Galaxy
 		/// <summary>
 		/// Galaxy friendly name
 		/// </summary>
-		public string Name { get; set; }
+		public string Name { get; set; } = new string("New Galaxy");
 
 		/// <summary>
 		/// List of stars in the galaxy.
@@ -30,10 +30,9 @@ namespace Neb25.Core.Galaxy
 		/// Constructor for a Galaxy.
 		/// </summary>
 		/// <param name="name">Name of the system.</param>
-		public Galaxy(string name)
+		public Galaxy()
 		{
 			Id = Guid.NewGuid(); // Assign a unique ID
-			Name = name;
 			StarSystems = new List<StarSystem>(); // Initialize the list
 		}
 
