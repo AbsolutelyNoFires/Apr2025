@@ -22,17 +22,10 @@ namespace Neb25.UI.Forms
 
 		private void btnNewGame_Click(object sender, EventArgs e)
 		{
-			int numberOfStars = 750;
-			int galaxyRadius = 10000; 
-			Galaxy generatedGalaxy = GalaxyGenerator.GenerateGalaxy(numberOfStars, galaxyRadius);
-
-			if (generatedGalaxy != null)
-			{
-				Game gameForm = new Game(generatedGalaxy);
-				this.Hide();
-				gameForm.ShowDialog();
-				this.Show();
-			} else {MessageBox.Show("Failed to generate galaxy.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);}
+			NewGameOptions newGameOptions = new NewGameOptions();
+			this.Hide();
+			newGameOptions.Show();
+			
 		}
 
 		private void btnOptions_Click(object sender, EventArgs e)

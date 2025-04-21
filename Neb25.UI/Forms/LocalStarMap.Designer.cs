@@ -1,6 +1,6 @@
 ﻿namespace Neb25.UI.Forms
 {
-	partial class OptionsForm
+	partial class LocalStarMap
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -28,32 +28,33 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			button1 = new Button();
+			pictureBox1 = new PictureBox();
+			((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
 			SuspendLayout();
 			// 
-			// button1
+			// pictureBox1
 			// 
-			button1.Location = new Point(626, 385);
-			button1.Name = "button1";
-			button1.Size = new Size(98, 23);
-			button1.TabIndex = 0;
-			button1.Text = "Back to menu";
-			button1.UseVisualStyleBackColor = true;
-			button1.Click += btn_optsBackToMainMenu_Click;
+			pictureBox1.Dock = DockStyle.Fill;
+			pictureBox1.Location = new Point(0, 0);
+			pictureBox1.Name = "pictureBox1";
+			pictureBox1.Size = new Size(800, 450);
+			pictureBox1.TabIndex = 0;
+			pictureBox1.TabStop = false;
 			// 
-			// OptionsForm
+			// LocalStarMap
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
-			Controls.Add(button1);
-			Name = "OptionsForm";
-			Text = "Options";
+			Controls.Add(pictureBox1);
+			Name = "LocalStarMap";
+			Text = "LocalStarMap";
+			((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
 			ResumeLayout(false);
 		}
 
 		#endregion
 
-		private Button button1;
+		private PictureBox pictureBox1;
 	}
 }

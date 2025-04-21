@@ -7,21 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.DataFormats;
 
 namespace Neb25.UI.Forms
 {
-	public partial class OptionsForm : Form
+	public partial class LocalStarMap : Form
 	{
-		private MainMenu MainMenu;
-		public OptionsForm(MainMenu parentForm)
+		public LocalStarMap()
 		{
 			InitializeComponent();
-			this.MainMenu = parentForm;
-		}
-		private void btn_optsBackToMainMenu_Click(object sender, EventArgs e)
-		{
-			this.Close();
 		}
 	}
 }
