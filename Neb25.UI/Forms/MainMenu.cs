@@ -22,8 +22,8 @@ namespace Neb25.UI.Forms
 
 		private void btnNewGame_Click(object sender, EventArgs e)
 		{
-			int numberOfStars = 10000;
-			int galaxyRadius = 1000; 
+			int numberOfStars = 750;
+			int galaxyRadius = 10000; 
 			Galaxy generatedGalaxy = GalaxyGenerator.GenerateGalaxy(numberOfStars, galaxyRadius);
 
 			if (generatedGalaxy != null)

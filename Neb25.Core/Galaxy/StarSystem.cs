@@ -22,17 +22,22 @@ namespace Neb25.Core.Galaxy
 		/// Gets or sets the 3D position of the star system in the galaxy.
 		/// Coordinates are relative to the galactic center (0,0,0).
 		/// </summary>
-		public Vector3 Position { get; set; } // Added Position
+		public Vector3 Position { get; set; } 
 
 		/// <summary>
 		/// Gets the list of stars within this star system.
 		/// </summary>
-		public List<Star> Stars { get; } = new List<Star>(); // Initialize the list
+		public List<Star> Stars { get; } = new List<Star>(); 
 
 		/// <summary>
 		/// Gets the list of planets within this star system.
 		/// </summary>
-		public List<Planet> Planets { get; } = new List<Planet>(); // Initialize the list
+		public List<Planet> Planets { get; } = new List<Planet>();
+
+		/// <summary>
+		/// Gets the list of jump points within this star system.
+		/// </summary>
+		public List<JumpSite> JumpSites { get; } = new List<JumpSite>();
 
 		// TODO: Add properties for star type, resources, owner empire, etc.
 

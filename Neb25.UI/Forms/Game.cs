@@ -1,319 +1,515 @@
 ﻿using Neb25.Core.Galaxy;
 using System;
 using System.Drawing;
-using System.Numerics; // For Vector3 used by StarSystem
+using System.Numerics; // For Vector3, Matrix4x4
 using System.Windows.Forms;
 using System.Collections.Generic; // For List
-using System.Drawing.Drawing2D; // For SmoothingMode
-using System.Linq; // Required for FirstOrDefault
+using System.Drawing.Drawing2D; // For SmoothingMode, Matrix
+using System.Linq; // Required for FirstOrDefault, Any, Max, OrderByDescending
 
 namespace Neb25.UI.Forms
 {
 	public partial class Game : Form
 	{
 		// Store the galaxy passed to the form
-		private readonly Core.Galaxy.Galaxy _currentGalaxy; // Made readonly, initialized in constructor
+		private readonly Core.Galaxy.Galaxy _currentGalaxy;
 
 		// --- Visualization Fields ---
-		private PointF _viewOffset = PointF.Empty; // Pan offset (in world coordinates)
-		private float _zoomLevel = 0.05f; // Zoom factor (pixels per world unit)
-		private Point _lastMousePosition = Point.Empty; // For panning calculation
+		private PointF _viewOffset = PointF.Empty;
+		private float _zoomLevel = 0.05f;
+		private Point _lastMousePosition = Point.Empty;
 		private bool _isPanning = false;
-		private const float MinZoom = 0.005f; // Minimum zoom level
-		private const float MaxZoom = 10.0f;  // Maximum zoom level
-		private const float ZoomFactor = 1.2f; // How much zoom changes per wheel tick
+		private bool _isRotating = false;
+		private float _rotationX = 0.0f;
+		private float _rotationY = 0.0f;
+		private Matrix4x4 _viewMatrix = Matrix4x4.Identity;
 
-		// --- Brushes and Pens (cache for performance) ---
+		private const float MinZoom = 0.005f;
+		private const float MaxZoom = 10.0f;
+		private const float ZoomFactor = 1.2f;
+		private const float RotationSpeed = 0.005f;
+
+		// --- Interaction State ---
+		private StarSystem? _hoveredSystem = null;
+		private StarSystem? _selectedSystem = null;
+		private RectangleF _selectedSystemPanelBounds;
+		private RectangleF _enterSystemButtonBounds;
+
+		// --- Brushes, Pens, Fonts ---
 		private readonly Brush _starBrush = Brushes.White;
-		private readonly Brush _backgroundBrush = Brushes.Black; // Although PictureBox BackColor is used, could be useful
-		private readonly Pen _debugCenterPen = Pens.Red; // Optional: for debugging center
+		private readonly Brush _hoverStarBrush = Brushes.Yellow;
+		private readonly Brush _selectedStarBrush = Brushes.Cyan;
+		private readonly Pen _hyperlanePen = new Pen(Color.FromArgb(100, 100, 100, 255), 1.0f); // Semi-transparent blue-gray lines
+		private readonly Brush _panelBackgroundBrush = new SolidBrush(Color.FromArgb(200, 40, 40, 60));
+		private readonly Brush _panelTextBrush = Brushes.White;
+		private readonly Pen _panelBorderPen = Pens.Cyan;
+		private readonly Brush _buttonBrush = Brushes.DarkCyan;
+		private readonly Brush _buttonTextBrush = Brushes.White;
+		private readonly Font _panelFont = new Font("Consolas", 9f);
+		private readonly Font _buttonFont = new Font("Consolas", 10f, FontStyle.Bold);
+		private readonly StringFormat _centerFormat = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
 
-		/// <summary>
-		/// Initializes a new instance of the Game form with a specific galaxy.
-		/// </summary>
-		/// <param name="galaxy">The galaxy data to display and interact with.</param>
-		/// <exception cref="ArgumentNullException">Thrown if galaxy is null.</exception>
-		public Game(Core.Galaxy.Galaxy galaxy) // Constructor now accepts a Galaxy object
+
+		public Game(Core.Galaxy.Galaxy galaxy)
 		{
 			InitializeComponent();
-
-			// Store the provided galaxy, ensuring it's not null
 			_currentGalaxy = galaxy ?? throw new ArgumentNullException(nameof(galaxy), "A valid galaxy must be provided.");
-
-			SetupGalaxyView(); // Initialize visualization settings
+			SetupGalaxyView();
+			UpdateViewMatrix();
 		}
 
-		/// <summary>
-		/// Sets up the PictureBox for galaxy drawing.
-		/// </summary>
+		private void UpdateViewMatrix()
+		{
+			Matrix4x4 rotX = Matrix4x4.CreateRotationX(_rotationX);
+			Matrix4x4 rotY = Matrix4x4.CreateRotationY(_rotationY);
+			_viewMatrix = rotY * rotX;
+		}
+
 		private void SetupGalaxyView()
 		{
-			// Find the PictureBox - ensure it's added in Game.Designer.cs
-			// If you named it differently, change "galaxyPictureBox" here.
 			if (this.Controls.Find("galaxyPictureBox", true).FirstOrDefault() is PictureBox pb)
 			{
-				// Double buffering reduces flicker
-				// Use reflection as DoubleBuffered is protected
-				pb.GetType().GetProperty("DoubleBuffered",
-					System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-					?.SetValue(pb, true, null);
-
-				pb.BackColor = Color.Black; // Set background color
-				pb.Paint += GalaxyPictureBox_Paint; // Wire up the paint event
+				pb.GetType().GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.SetValue(pb, true, null);
+				pb.BackColor = Color.Black;
+				pb.Paint += GalaxyPictureBox_Paint;
 				pb.MouseDown += GalaxyPictureBox_MouseDown;
 				pb.MouseMove += GalaxyPictureBox_MouseMove;
 				pb.MouseUp += GalaxyPictureBox_MouseUp;
-				pb.MouseWheel += GalaxyPictureBox_MouseWheel; // Wire up mouse wheel for zooming
-				pb.Resize += (sender, e) => pb.Invalidate(); // Redraw on resize
+				pb.MouseWheel += GalaxyPictureBox_MouseWheel;
+				pb.MouseLeave += GalaxyPictureBox_MouseLeave;
+				pb.Resize += (sender, e) => pb.Invalidate();
 
-				// Set initial zoom based on galaxy size (optional refinement)
-				// Find max extent to set a reasonable starting zoom
+				// Calculate initial zoom
 				if (_currentGalaxy.StarSystems.Any())
 				{
-					float maxDist = _currentGalaxy.StarSystems.Max(s => Math.Max(Math.Abs(s.Position.X), Math.Abs(s.Position.Y)));
-					if (maxDist > 1.0f && pb.Width > 0 && pb.Height > 0) // Avoid division by zero
+					float maxDist = _currentGalaxy.StarSystems.Max(s => Math.Max(Math.Max(Math.Abs(s.Position.X), Math.Abs(s.Position.Y)), Math.Abs(s.Position.Z)));
+					if (maxDist > 1.0f && pb.Width > 0 && pb.Height > 0)
 					{
-						// Aim to fit most of the galaxy initially
-						float zoomX = pb.Width / (maxDist * 2.5f); // *2.5 to add some padding
+						float zoomX = pb.Width / (maxDist * 2.5f);
 						float zoomY = pb.Height / (maxDist * 2.5f);
-						_zoomLevel = Math.Min(zoomX, zoomY); // Use the more constrained dimension
-						_zoomLevel = Math.Clamp(_zoomLevel, MinZoom, MaxZoom); // Clamp to limits
+						_zoomLevel = Math.Min(zoomX, zoomY);
+						_zoomLevel = Math.Clamp(_zoomLevel, MinZoom, MaxZoom);
 					}
 				}
-
 			}
 			else
 			{
-				// Handle case where PictureBox wasn't found
-				MessageBox.Show("Error: Galaxy PictureBox ('galaxyPictureBox') not found on the Game form. Please add it in the designer.",
-								"Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				// Consider closing the form or preventing further execution if the PB is essential
-				// this.Load += (s, e) => this.Close(); // Example: Close form if PB missing
+				MessageBox.Show("Error: Galaxy PictureBox ('galaxyPictureBox') not found...", "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
 
-
-		/// <summary>
-		/// Handles the Load event of the Game form.
-		/// </summary>
 		private void Game_Load(object sender, EventArgs e)
 		{
-			// Galaxy is now passed in via the constructor.
-			// Remove the generation logic from here.
-
-			// Trigger initial draw now that the form is loaded and sized
 			if (this.Controls.Find("galaxyPictureBox", true).FirstOrDefault() is PictureBox pb)
 			{
 				pb.Invalidate();
 			}
 		}
 
-		// --- Event Handlers for Visualization ---
+		// --- Event Handlers ---
 
-		/// <summary>
-		/// Handles the Paint event for the galaxy PictureBox. Draws the galaxy representation.
-		/// </summary>
 		private void GalaxyPictureBox_Paint(object? sender, PaintEventArgs e)
 		{
-			// _currentGalaxy is now guaranteed non-null by the constructor
 			if (sender is not PictureBox pb) return;
 
 			Graphics g = e.Graphics;
-			g.SmoothingMode = SmoothingMode.AntiAlias; // Make circles look smoother
-			g.Clear(pb.BackColor); // Clear with background color
+			g.SmoothingMode = SmoothingMode.AntiAlias;
+			g.Clear(pb.BackColor);
 
-			// Calculate the center of the PictureBox (view center)
 			PointF viewCenter = new PointF(pb.Width / 2.0f, pb.Height / 2.0f);
 
-			// Draw each star system
-			foreach (var system in _currentGalaxy.StarSystems)
-			{
-				// Convert 3D world position to 2D screen position
-				PointF screenPos = WorldToScreen(system.Position, viewCenter, _viewOffset, _zoomLevel);
+			// Pre-calculate transformed positions for all systems
+			var transformedSystems = _currentGalaxy.StarSystems
+				.Select(s => new { System = s, TransformedPos = Vector3.Transform(s.Position, _viewMatrix) })
+				.ToDictionary(item => item.System, item => item.TransformedPos);
 
-				// Simple culling: Don't draw if way off-screen (basic optimization)
-				float starDrawSize = Math.Max(1.0f, 2.0f * _zoomLevel); // Use a variable for size calculation
-				float cullMargin = starDrawSize * 2; // Margin based on star size
+			// --- Hyperlane Drawing (Draw first, so stars are on top) ---
+			var drawnLanes = new HashSet<Tuple<StarSystem, StarSystem>>(); // Prevent drawing lanes twice (A->B and B->A)
+			foreach (var startSystem in _currentGalaxy.StarSystems)
+			{
+				// Check if this system and its transformed position exist in our dictionary
+				if (!transformedSystems.TryGetValue(startSystem, out Vector3 startTransformedPos)) continue;
+
+				PointF startScreenPos = WorldToScreen(startTransformedPos, viewCenter, _viewOffset, _zoomLevel);
+
+				foreach (var jumpSite in startSystem.JumpSites)
+				{
+					if (jumpSite.HasPartner && jumpSite.Partner != null)
+					{
+						var endSystem = jumpSite.Partner.ParentStarSystem;
+
+						// Ensure we only draw lane A->B once, using system IDs for comparison
+						var pair = (startSystem.Id.CompareTo(endSystem.Id) < 0)
+							? Tuple.Create(startSystem, endSystem)
+							: Tuple.Create(endSystem, startSystem);
+
+						if (drawnLanes.Add(pair)) // If the pair was successfully added (i.e., not drawn yet)
+						{
+							// Check if the end system and its transformed position exist
+							if (transformedSystems.TryGetValue(endSystem, out Vector3 endTransformedPos))
+							{
+								PointF endScreenPos = WorldToScreen(endTransformedPos, viewCenter, _viewOffset, _zoomLevel);
+
+								// Optional: Cull lanes far off-screen (check if both points are way out)
+								float cullMargin = Math.Max(pb.Width, pb.Height); // Generous margin
+								bool startOffscreen = startScreenPos.X < -cullMargin || startScreenPos.X > pb.Width + cullMargin ||
+													  startScreenPos.Y < -cullMargin || startScreenPos.Y > pb.Height + cullMargin;
+								bool endOffscreen = endScreenPos.X < -cullMargin || endScreenPos.X > pb.Width + cullMargin ||
+													endScreenPos.Y < -cullMargin || endScreenPos.Y > pb.Height + cullMargin;
+
+								if (!(startOffscreen && endOffscreen)) // Draw if at least one point is potentially visible
+								{
+									g.DrawLine(_hyperlanePen, startScreenPos, endScreenPos);
+								}
+							}
+						}
+					}
+				}
+			}
+
+
+			// --- Star Drawing ---
+			// Sort stars by transformed Z for pseudo-3D effect (closer stars draw on top)
+			var sortedSystems = transformedSystems
+				.OrderBy(kvp => kvp.Value.Z) // Sort by Z (draw furthest first)
+				.ToList();
+
+			foreach (var kvp in sortedSystems)
+			{
+				StarSystem system = kvp.Key;
+				Vector3 transformedPos = kvp.Value; // Use pre-calculated transformed position
+
+				PointF screenPos = WorldToScreen(transformedPos, viewCenter, _viewOffset, _zoomLevel);
+
+				float starDrawSize = Math.Max(1.0f, 2.0f * _zoomLevel);
+				float cullMargin = starDrawSize * 2;
 				if (screenPos.X < -cullMargin || screenPos.X > pb.Width + cullMargin ||
 					screenPos.Y < -cullMargin || screenPos.Y > pb.Height + cullMargin)
 				{
-					continue;
+					continue; // Cull stars far off-screen
 				}
 
-				// Draw the star (e.g., a small circle)
-				g.FillEllipse(_starBrush, screenPos.X - starDrawSize / 2, screenPos.Y - starDrawSize / 2, starDrawSize, starDrawSize);
+				// Determine star color/brush
+				Brush currentStarBrush = _starBrush;
+				if (system == _selectedSystem) currentStarBrush = _selectedStarBrush;
+				else if (system == _hoveredSystem) currentStarBrush = _hoverStarBrush;
 
-				// TODO: Draw system names when zoomed in enough
-				// TODO: Draw connections (hyperlanes) if implemented
-				// TODO: Color stars based on type or owner
+				// Draw the star
+				g.FillEllipse(currentStarBrush, screenPos.X - starDrawSize / 2, screenPos.Y - starDrawSize / 2, starDrawSize, starDrawSize);
 			}
 
-			// --- Optional: Display Debug Info ---
-			// string debugText = $"Zoom: {_zoomLevel:F3}, Offset: ({_viewOffset.X:F1}, {_viewOffset.Y:F1}), Stars: {_currentGalaxy.StarSystems.Count}";
-			// g.DrawString(debugText, this.Font, Brushes.Yellow, 10, 10);
-			// --- End Optional ---
+			// --- Hover Info Drawing ---
+			if (_hoveredSystem != null && _hoveredSystem != _selectedSystem)
+			{
+				DrawHoverPanel(g, _hoveredSystem, _lastMousePosition);
+			}
+
+			// --- Selected Info Panel Drawing ---
+			if (_selectedSystem != null)
+			{
+				DrawSelectedPanel(g, _selectedSystem, pb.ClientRectangle);
+			}
 		}
 
-		/// <summary>
-		/// Handles mouse down event for panning.
-		/// </summary>
 		private void GalaxyPictureBox_MouseDown(object? sender, MouseEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left || e.Button == MouseButtons.Middle) // Use Left or Middle mouse for panning
+			_lastMousePosition = e.Location;
+			(sender as Control)?.Focus();
+
+			if (e.Button == MouseButtons.Left)
 			{
+				if (_selectedSystem != null && _enterSystemButtonBounds.Contains(e.Location)) return;
 				_isPanning = true;
-				_lastMousePosition = e.Location;
-				// Capture mouse to handle dragging outside the control boundaries
-				(sender as Control)!.Capture = true;
-				(sender as Control)!.Cursor = Cursors.Hand; // Change cursor to indicate panning
+				(sender as Control)!.Cursor = Cursors.Hand;
 			}
+			else if (e.Button == MouseButtons.Right)
+			{
+				_isRotating = true;
+				(sender as Control)!.Cursor = Cursors.SizeAll;
+			}
+			 (sender as Control)!.Capture = true;
 		}
 
-		/// <summary>
-		/// Handles mouse move event for panning.
-		/// </summary>
 		private void GalaxyPictureBox_MouseMove(object? sender, MouseEventArgs e)
 		{
-			if (_isPanning && sender is PictureBox pb)
-			{
-				// Prevent panning if zoom is too small (avoids large jumps / potential division issues)
-				if (Math.Abs(_zoomLevel) < 1e-6) return;
+			Point currentMousePosition = e.Location;
+			float dx = currentMousePosition.X - _lastMousePosition.X;
+			float dy = currentMousePosition.Y - _lastMousePosition.Y;
+			bool needsRedraw = false;
 
-				Point currentMousePosition = e.Location;
-				// Calculate change in screen coordinates
-				float dx = currentMousePosition.X - _lastMousePosition.X;
-				float dy = currentMousePosition.Y - _lastMousePosition.Y;
-
-				// Adjust view offset based on mouse movement scaled by inverse zoom level
-				// Panning should move the world opposite to the mouse drag direction
-				_viewOffset.X -= dx / _zoomLevel;
-				_viewOffset.Y -= dy / _zoomLevel; // Screen Y is inverted relative to typical cartesian Y
-
-				_lastMousePosition = currentMousePosition;
-				pb.Invalidate(); // Request redraw
-			}
-			// TODO: Add hover effects (e.g., highlight nearest star) here if desired
-		}
-
-		/// <summary>
-		/// Handles mouse up event to stop panning.
-		/// </summary>
-		private void GalaxyPictureBox_MouseUp(object? sender, MouseEventArgs e)
-		{
 			if (_isPanning)
 			{
-				_isPanning = false;
-				(sender as Control)!.Capture = false; // Release mouse capture
-				(sender as Control)!.Cursor = Cursors.Default; // Restore default cursor
+				if (Math.Abs(_zoomLevel) > 1e-6)
+				{
+					_viewOffset.X -= dx / _zoomLevel;
+					_viewOffset.Y -= dy / _zoomLevel;
+					needsRedraw = true;
+				}
 			}
-			// TODO: Add selection logic here (e.g., if click without dragging)
+			else if (_isRotating)
+			{
+				_rotationY += dx * RotationSpeed;
+				_rotationX += dy * RotationSpeed;
+				_rotationX = Math.Clamp(_rotationX, -(float)Math.PI / 2.0f + 0.1f, (float)Math.PI / 2.0f - 0.1f);
+				UpdateViewMatrix();
+				needsRedraw = true;
+			}
+			else
+			{
+				StarSystem? previouslyHovered = _hoveredSystem;
+				_hoveredSystem = FindSystemAtScreenPoint(currentMousePosition, (sender as PictureBox)!);
+				if (_hoveredSystem != previouslyHovered) needsRedraw = true;
+
+				bool overPanel = _selectedSystem != null && _selectedSystemPanelBounds.Contains(currentMousePosition);
+				bool overButton = _selectedSystem != null && _enterSystemButtonBounds.Contains(currentMousePosition);
+				(sender as Control)!.Cursor = (_hoveredSystem != null || overPanel || overButton) ? Cursors.Hand : Cursors.Default;
+			}
+
+			_lastMousePosition = currentMousePosition;
+			if (needsRedraw)
+			{
+				(sender as PictureBox)?.Invalidate();
+			}
 		}
 
-		/// <summary>
-		/// Handles mouse wheel event for zooming.
-		/// </summary>
+		private void GalaxyPictureBox_MouseUp(object? sender, MouseEventArgs e)
+		{
+			float dragDistanceSq = (e.X - _lastMousePosition.X) * (e.X - _lastMousePosition.X) +
+								  (e.Y - _lastMousePosition.Y) * (e.Y - _lastMousePosition.Y);
+			bool isClick = dragDistanceSq < 25.0f;
+
+			bool wasPanning = _isPanning;
+			bool wasRotating = _isRotating;
+
+			_isPanning = false;
+			_isRotating = false;
+			(sender as Control)!.Capture = false;
+
+			bool overPanel = _selectedSystem != null && _selectedSystemPanelBounds.Contains(e.Location);
+			bool overButton = _selectedSystem != null && _enterSystemButtonBounds.Contains(e.Location);
+			_hoveredSystem = FindSystemAtScreenPoint(e.Location, (sender as PictureBox)!);
+			(sender as Control)!.Cursor = (_hoveredSystem != null || overPanel || overButton) ? Cursors.Hand : Cursors.Default;
+
+			if (e.Button == MouseButtons.Left && isClick)
+			{
+				if (_selectedSystem != null && _enterSystemButtonBounds.Contains(e.Location))
+				{
+					EnterSystemView(_selectedSystem);
+					(sender as PictureBox)?.Invalidate();
+					return;
+				}
+				if (_selectedSystem != null && _selectedSystemPanelBounds.Contains(e.Location))
+				{
+					(sender as PictureBox)?.Invalidate();
+					return;
+				}
+
+				StarSystem? clickedSystem = FindSystemAtScreenPoint(e.Location, (sender as PictureBox)!);
+				if (_selectedSystem != clickedSystem)
+				{
+					_selectedSystem = clickedSystem;
+					(sender as PictureBox)?.Invalidate();
+				}
+				else if (clickedSystem == null)
+				{
+					_selectedSystem = null;
+					(sender as PictureBox)?.Invalidate();
+				}
+			}
+			else if (!isClick && (wasPanning || wasRotating))
+			{
+				(sender as PictureBox)?.Invalidate();
+			}
+		}
+
 		private void GalaxyPictureBox_MouseWheel(object? sender, MouseEventArgs e)
 		{
 			if (sender is not PictureBox pb) return;
+			pb.Focus();
 
-			// Calculate zoom factor (increase or decrease)
 			float zoomMultiplier = (e.Delta > 0) ? ZoomFactor : 1.0f / ZoomFactor;
 			float newZoom = _zoomLevel * zoomMultiplier;
-
-			// Clamp zoom level within min/max bounds
 			newZoom = Math.Clamp(newZoom, MinZoom, MaxZoom);
 
-			// If zoom didn't change (due to clamping), exit
 			if (Math.Abs(newZoom - _zoomLevel) < float.Epsilon) return;
 
-			// --- Zoom towards mouse cursor ---
-			// 1. Get mouse position relative to the control
 			PointF mousePos = e.Location;
-
-			// 2. Calculate world coordinates under the cursor *before* zoom
-			PointF worldPosUnderMouse = ScreenToWorld(mousePos, new PointF(pb.Width / 2.0f, pb.Height / 2.0f), _viewOffset, _zoomLevel);
-
-			// 3. Update zoom level
+			PointF viewCenter = new PointF(pb.Width / 2.0f, pb.Height / 2.0f);
+			PointF worldPosUnderMouse = ScreenToWorld(mousePos, viewCenter);
 			_zoomLevel = newZoom;
+			PointF screenPosAfterZoom = WorldToScreen(new Vector3(worldPosUnderMouse.X, worldPosUnderMouse.Y, 0), viewCenter, _viewOffset, _zoomLevel);
 
-			// Prevent division by zero in adjustment calculation if zoom becomes extremely small
-			if (Math.Abs(_zoomLevel) < float.Epsilon) return;
-
-			// 4. Calculate where the *same* world coordinates should be *after* zoom
-			PointF screenPosAfterZoom = WorldToScreen(new Vector3(worldPosUnderMouse.X, worldPosUnderMouse.Y, 0), new PointF(pb.Width / 2.0f, pb.Height / 2.0f), _viewOffset, _zoomLevel);
-
-			// 5. Adjust the offset so the world point stays under the mouse
-			// We want the new screen position (screenPosAfterZoom) to be where the mouse cursor *is* (mousePos).
-			// The difference needs to be compensated by adjusting the view offset (in world units).
-			_viewOffset.X -= (mousePos.X - screenPosAfterZoom.X) / _zoomLevel;
-			_viewOffset.Y -= (mousePos.Y - screenPosAfterZoom.Y) / _zoomLevel; // Screen Y is inverted
-																			   // --- End Zoom towards mouse cursor ---
-
-			pb.Invalidate(); // Request redraw after zoom
+			if (Math.Abs(_zoomLevel) > float.Epsilon)
+			{
+				_viewOffset.X -= (mousePos.X - screenPosAfterZoom.X) / _zoomLevel;
+				_viewOffset.Y -= (mousePos.Y - screenPosAfterZoom.Y) / _zoomLevel;
+			}
+			pb.Invalidate();
 		}
 
+		private void GalaxyPictureBox_MouseLeave(object? sender, EventArgs e)
+		{
+			if (_hoveredSystem != null)
+			{
+				_hoveredSystem = null;
+				(sender as PictureBox)?.Invalidate();
+			}
+			if (_isPanning || _isRotating)
+			{
+				_isPanning = false;
+				_isRotating = false;
+				(sender as Control)!.Capture = false;
+				(sender as Control)!.Cursor = Cursors.Default;
+				(sender as PictureBox)!.Invalidate();
+			}
+		}
+
+		// --- Drawing Helpers ---
+		private void DrawHoverPanel(Graphics g, StarSystem system, Point mousePos)
+		{
+			string info = $"{system.Name}\nPlanets: {system.Planets.Count}";
+			SizeF size = g.MeasureString(info, _panelFont);
+			float padding = 5f;
+			RectangleF panelRect = new RectangleF(
+				mousePos.X + 15, mousePos.Y + 10,
+				size.Width + 2 * padding, size.Height + 2 * padding);
+
+			RectangleF clientRect = g.VisibleClipBounds;
+			if (panelRect.Right > clientRect.Width) panelRect.X = mousePos.X - panelRect.Width - 15;
+			if (panelRect.Bottom > clientRect.Height) panelRect.Y = mousePos.Y - panelRect.Height - 10;
+			if (panelRect.Left < 0) panelRect.X = 0;
+			if (panelRect.Top < 0) panelRect.Y = 0;
+
+			g.FillRectangle(_panelBackgroundBrush, panelRect);
+			g.DrawRectangle(Pens.Yellow, panelRect.X, panelRect.Y, panelRect.Width, panelRect.Height);
+			g.DrawString(info, _panelFont, _panelTextBrush, panelRect.X + padding, panelRect.Y + padding);
+		}
+
+		private void DrawSelectedPanel(Graphics g, StarSystem system, Rectangle clientRect)
+		{
+			float panelWidth = 200;
+			float panelHeight = 170; // Increased height slightly for neighbor count
+			float padding = 10f;
+			float buttonHeight = 25f;
+			float buttonWidth = panelWidth - 2 * padding;
+
+			_selectedSystemPanelBounds = new RectangleF(
+				padding, clientRect.Height - panelHeight - padding, panelWidth, panelHeight);
+
+			g.FillRectangle(_panelBackgroundBrush, _selectedSystemPanelBounds);
+			g.DrawRectangle(_panelBorderPen, _selectedSystemPanelBounds.X, _selectedSystemPanelBounds.Y, _selectedSystemPanelBounds.Width, _selectedSystemPanelBounds.Height);
+
+			float currentY = _selectedSystemPanelBounds.Y + padding;
+			float contentWidth = panelWidth - 2 * padding;
+
+			// System Name
+			SizeF nameSize = g.MeasureString(system.Name, _buttonFont, (int)contentWidth);
+			RectangleF nameRect = new RectangleF(_selectedSystemPanelBounds.X + padding, currentY, contentWidth, nameSize.Height);
+			g.DrawString(system.Name, _buttonFont, _panelTextBrush, nameRect);
+			currentY += nameSize.Height + padding / 2;
+
+			// Planet info - we'll add info about jump points later
+			g.DrawString($"Planets: {system.Planets.Count}", _panelFont, _panelTextBrush, _selectedSystemPanelBounds.X + padding, currentY);
+			currentY += _panelFont.Height;
+
+
+			// Position
+			g.DrawString($"Pos: ({system.Position.X:F0}, {system.Position.Y:F0}, {system.Position.Z:F0})", _panelFont, _panelTextBrush, _selectedSystemPanelBounds.X + padding, currentY);
+			currentY += _panelFont.Height;
+
+			// ASCII Graphic
+			string asciiArt = "   (*)   \n  / | \\ \n (.'.)\n  \\ | / \n   ---   "; // Slightly different art
+			float requiredArtHeight = _panelFont.Height * 5;
+			if (currentY + requiredArtHeight < _selectedSystemPanelBounds.Bottom - buttonHeight - padding * 2)
+			{
+				g.DrawString(asciiArt, _panelFont, Brushes.LightGreen, _selectedSystemPanelBounds.X + padding, currentY);
+			}
+
+			// Enter System Button
+			_enterSystemButtonBounds = new RectangleF(
+			   _selectedSystemPanelBounds.X + padding, _selectedSystemPanelBounds.Bottom - buttonHeight - padding,
+			   buttonWidth, buttonHeight);
+			g.FillRectangle(_buttonBrush, _enterSystemButtonBounds);
+			g.DrawString("Enter System", _buttonFont, _buttonTextBrush, _enterSystemButtonBounds, _centerFormat);
+		}
+
+		// --- Interaction Logic ---
+		private StarSystem? FindSystemAtScreenPoint(PointF screenPoint, PictureBox pb)
+		{
+			PointF viewCenter = new PointF(pb.Width / 2.0f, pb.Height / 2.0f);
+			float clickRadius = Math.Max(5.0f, 3.0f * _zoomLevel);
+			float clickRadiusSq = clickRadius * clickRadius;
+
+			// Pre-calculate transformed positions if not already done (or pass them in)
+			// For simplicity here, we recalculate, but could optimize by passing the dictionary
+			var transformedSystems = _currentGalaxy.StarSystems
+			   .Select(s => new { System = s, TransformedPos = Vector3.Transform(s.Position, _viewMatrix) })
+			   .OrderByDescending(s => s.TransformedPos.Z) // Closest first
+			   .ToList();
+
+			foreach (var item in transformedSystems)
+			{
+				PointF starScreenPos = WorldToScreen(item.TransformedPos, viewCenter, _viewOffset, _zoomLevel);
+				float dx = screenPoint.X - starScreenPos.X;
+				float dy = screenPoint.Y - starScreenPos.Y;
+				float distSq = dx * dx + dy * dy;
+
+				if (distSq <= clickRadiusSq)
+				{
+					return item.System;
+				}
+			}
+			return null;
+		}
+
+		private void EnterSystemView(StarSystem system)
+		{
+			
+			// TODO: Implement SystemViewForm
+			var systemForm = new SystemViewForm(system);
+			systemForm.Show();
+		}
 
 		// --- Coordinate Transformation Helpers ---
-
-		/// <summary>
-		/// Converts 3D World Coordinates (using X, Y) to 2D Screen Coordinates.
-		/// </summary>
-		/// <param name="worldPos">The Vector3 world position (only X and Y are used).</param>
-		/// <param name="viewCenter">The center point of the PictureBox.</param>
-		/// <param name="offset">The current pan offset (in world coordinates).</param>
-		/// <param name="zoom">The current zoom level (pixels per world unit).</param>
-		/// <returns>The corresponding PointF on the screen.</returns>
-		private PointF WorldToScreen(Vector3 worldPos, PointF viewCenter, PointF offset, float zoom)
+		private PointF WorldToScreen(Vector3 rotatedWorldPos, PointF viewCenter, PointF offset, float zoom)
 		{
-			// 1. Apply offset: Translate world based on the view offset.
-			float offsetX = worldPos.X - offset.X;
-			float offsetY = worldPos.Y - offset.Y; // Using Y for screen Y
-
-			// 2. Apply zoom: Scale the offset coordinates.
+			float worldX = rotatedWorldPos.X;
+			float worldY = rotatedWorldPos.Y;
+			float offsetX = worldX - offset.X;
+			float offsetY = worldY - offset.Y;
 			float zoomedX = offsetX * zoom;
 			float zoomedY = offsetY * zoom;
-
-			// 3. Translate to view center: Position relative to the PictureBox center.
-			// Add zoomedX to center X.
-			// Add zoomedY to center Y (Screen Y increases downwards, matching typical Cartesian Y after offset and zoom).
 			float screenX = viewCenter.X + zoomedX;
 			float screenY = viewCenter.Y + zoomedY;
-
 			return new PointF(screenX, screenY);
 		}
 
-		/// <summary>
-		/// Converts 2D Screen Coordinates back to 2D World Coordinates (X, Y plane).
-		/// </summary>
-		/// <param name="screenPos">The PointF screen position.</param>
-		/// <param name="viewCenter">The center point of the PictureBox.</param>
-		/// <param name="offset">The current pan offset (in world coordinates).</param>
-		/// <param name="zoom">The current zoom level (pixels per world unit).</param>
-		/// <returns>The corresponding PointF in the world (X, Y plane).</returns>
-		private PointF ScreenToWorld(PointF screenPos, PointF viewCenter, PointF offset, float zoom)
+		private PointF ScreenToWorld(PointF screenPos, PointF viewCenter)
 		{
-			// Prevent division by zero if zoom is extremely small
-			if (Math.Abs(zoom) < float.Epsilon)
-			{
-				// Return the current center of the view in world coordinates as a fallback
-				return offset;
-			}
-
-			// 1. Translate from view center: Get coordinates relative to the center.
+			if (Math.Abs(_zoomLevel) < float.Epsilon) return _viewOffset;
 			float relativeX = screenPos.X - viewCenter.X;
-			float relativeY = screenPos.Y - viewCenter.Y; // Screen Y increases downwards
-
-			// 2. Apply inverse zoom: Scale back to world units.
-			float unzoomedX = relativeX / zoom;
-			float unzoomedY = relativeY / zoom;
-
-			// 3. Apply inverse offset: Translate back based on the view offset.
-			float worldX = unzoomedX + offset.X;
-			float worldY = unzoomedY + offset.Y; // Add offset Y
-
+			float relativeY = screenPos.Y - viewCenter.Y;
+			float unzoomedX = relativeX / _zoomLevel;
+			float unzoomedY = relativeY / _zoomLevel;
+			float worldX = unzoomedX + _viewOffset.X;
+			float worldY = unzoomedY + _viewOffset.Y;
 			return new PointF(worldX, worldY);
 		}
 
-		// Add other game logic methods here (e.g., handling clicks on stars, turn progression)...
+		// Dispose cached graphics objects
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_hyperlanePen?.Dispose(); // Dispose the new pen
+				_panelBackgroundBrush?.Dispose();
+				_buttonBrush?.Dispose();
+				_panelFont?.Dispose();
+				_buttonFont?.Dispose();
+				_centerFormat?.Dispose();
+				components?.Dispose();
+			}
+			base.Dispose(disposing);
+		}
 	}
 }
