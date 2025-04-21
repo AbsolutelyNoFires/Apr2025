@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Neb25.Core
+namespace Neb25.Core.Galaxy
 {
 	public class Galaxy
 	{
@@ -24,7 +24,7 @@ namespace Neb25.Core
 		/// <summary>
 		/// List of stars in the galaxy.
 		/// </summary>
-		public List<StarSystem> Stars { get; set; }
+		public List<StarSystem> StarSystems { get; set; }
 
 		/// <summary>
 		/// Constructor for a Galaxy.
@@ -34,7 +34,7 @@ namespace Neb25.Core
 		{
 			Id = Guid.NewGuid(); // Assign a unique ID
 			Name = name;
-			Stars = new List<StarSystem>(); // Initialize the list
+			StarSystems = new List<StarSystem>(); // Initialize the list
 		}
 
 		/// <summary>
@@ -42,7 +42,7 @@ namespace Neb25.Core
 		/// </summary>
 		public void AddStarSystem(StarSystem star)
 		{
-			Stars.Add(star);
+			StarSystems.Add(star);
 		}
 	}
 }

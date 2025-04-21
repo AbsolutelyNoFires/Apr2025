@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Neb25.Core
+namespace Neb25.Core.Galaxy
 {
 	public class Planet
 	{
@@ -35,14 +35,11 @@ namespace Neb25.Core
 			/// Constructor for a Planet.
 			/// </summary>
 			/// <param name="name">Name of the planet.</param>
-			/// <param name="type">Type of the planet.</param>
-			/// <param name="size">Size of the planet.</param>
-			public Planet(string name, string type, int size)
+			
+			public Planet(string name)
 			{
 				Id = Guid.NewGuid();
 				Name = name;
-				Type = type;
-				Size = size;
 				// Initialize other properties/lists here if needed
 			}
 		}
