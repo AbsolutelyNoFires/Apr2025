@@ -38,7 +38,7 @@ namespace Neb25.UI.Forms
 				Random gameRNG = new Random(seedNum);
 
 				Galaxy newGalaxy = GalaxyGenerator.GenerateGalaxy(numSys, gameRNG);
-				Game gameForm = new(newGalaxy);
+				GalaxyMap gameForm = new(newGalaxy);
 				this.Hide();
 				gameForm.Show();
 			}

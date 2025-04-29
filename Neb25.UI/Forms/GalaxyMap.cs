@@ -11,7 +11,7 @@ using System.Windows.Forms;     // Required for Form, MouseEventArgs etc.
 
 namespace Neb25.UI.Forms
 {
-	public partial class Game : Form
+	public partial class GalaxyMap : Form
 	{
 		private readonly Core.Galaxy.Galaxy _galaxy;
 
@@ -40,7 +40,6 @@ namespace Neb25.UI.Forms
 		private StarSystem? _hoveredSystem = null;
 
 		// --- UI Control References (Set in Constructor) ---
-		// NOTE: These controls must be added in the Form Designer!
 		private Panel? _selectedSystemInfoPanel = null;
 		private Label? _systemNameLabel = null;
 		private PictureBox? _subwayMapPictureBox = null;
@@ -77,44 +76,22 @@ namespace Neb25.UI.Forms
 		private HashSet<string> _drawnLinks = new HashSet<string>();
 
 
-		public Game(Core.Galaxy.Galaxy galaxy)
+		public GalaxyMap(Core.Galaxy.Galaxy galaxy)
 		{
 			InitializeComponent();
-
 			_galaxy = galaxy ?? throw new ArgumentNullException(nameof(galaxy));
 
-			// --- Find UI Controls (Assumed to exist in the designer) ---
-			// Find the main panel
+
+			// When we click on a system, the info panel appears in the top left of the screen. When we click off it, the panel disappears
 			_selectedSystemInfoPanel = this.Controls.Find("selectedSystemInfoPanel", true).FirstOrDefault() as Panel;
 			if (_selectedSystemInfoPanel != null)
 			{
-				_selectedSystemInfoPanel.Visible = false; // Start hidden
-
-				// Find controls *within* the panel
+				_selectedSystemInfoPanel.Visible = false;
 				_systemNameLabel = _selectedSystemInfoPanel.Controls.Find("systemNameLabel", true).FirstOrDefault() as Label;
 				_subwayMapPictureBox = _selectedSystemInfoPanel.Controls.Find("subwayMapPictureBox", true).FirstOrDefault() as PictureBox;
 				_enterSystemButton = _selectedSystemInfoPanel.Controls.Find("enterSystemButton", true).FirstOrDefault() as Button;
-
-				// Attach button click handler if found
-				if (_enterSystemButton != null)
-				{
-					_enterSystemButton.Click += EnterSystemButton_Click;
-					_enterSystemButton.Enabled = false; // Disabled until a system is selected
-				}
-
-				// Setup PictureBox for subway map (optional: background color)
-				if (_subwayMapPictureBox != null)
-				{
-					_subwayMapPictureBox.BackColor = Color.FromArgb(30, 30, 30); // Dark background
-																				 // Ensure Paint event is hooked up if needed for dynamic drawing,
-																				 // but here we'll draw to a Bitmap and set the Image property.
-				}
 			}
-			else
-			{
-				// Log warning or inform user that the panel is missing
-				Console.WriteLine("Warning: Control 'selectedSystemInfoPanel' not found.");
-			}
+
 
 
 			// --- Setup galaxyPictureBox ---
@@ -139,7 +116,7 @@ namespace Neb25.UI.Forms
 
 		private void GalaxyPictureBox_Paint(object? sender, PaintEventArgs e)
 		{
-			// (Painting logic for galaxy map remains largely the same)
+
 			if (sender is not PictureBox pb) return;
 			Graphics g = e.Graphics;
 			g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -159,7 +136,7 @@ namespace Neb25.UI.Forms
 
 			// --- Draw Jump Links ---
 			if (_galaxy?.StarSystems != null)
-			{ /* ... same as before ... */
+			{
 				foreach (var system in _galaxy.StarSystems)
 				{
 					foreach (var jumpSite in system.JumpSites)
@@ -189,7 +166,7 @@ namespace Neb25.UI.Forms
 
 			// --- Draw Star Systems ---
 			if (_galaxy?.StarSystems != null)
-			{ /* ... same as before ... */
+			{
 				foreach (var system in _galaxy.StarSystems)
 				{
 					if (!_systemScreenPositions.TryGetValue(system, out Vector2 screenPosValue))
@@ -215,10 +192,10 @@ namespace Neb25.UI.Forms
 			}
 
 
-			// --- Draw UI Overlays ---
-			if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); } // Selection Box
+			// --- Box select systems, mouse over systems for their name ---
+			if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); }
 			if (!_isBoxSelecting && _hoveredSystem != null && _systemScreenPositions.TryGetValue(_hoveredSystem, out Vector2 hoveredPos))
-			{ /* ... Tooltip drawing same as before ... */
+			{
 				string text = _hoveredSystem.Name;
 				SizeF textSize = g.MeasureString(text, _tooltipFont);
 				float padding = 4f;
@@ -237,37 +214,28 @@ namespace Neb25.UI.Forms
 		/// </summary>
 		private void UpdateInfoPanel()
 		{
-			if (_selectedSystemInfoPanel == null) return; // Safety check
-
+			if (_selectedSystemInfoPanel == null) return;
 			if (_selectedSystem == null)
 			{
 				_selectedSystemInfoPanel.Visible = false;
 				if (_enterSystemButton != null) _enterSystemButton.Enabled = false;
-				// Clear subway map
 				if (_subwayMapPictureBox != null) _subwayMapPictureBox.Image = null;
 			}
 			else
 			{
+				// when the lmb goes down on a star's location, it becomes the _selectedSystem 
 				_selectedSystemInfoPanel.Visible = true;
-
-				// Update basic info
 				if (_systemNameLabel != null) _systemNameLabel.Text = _selectedSystem.Name;
-				// Update other labels here...
-
-				// Enable button
-				if (_enterSystemButton != null) _enterSystemButton.Enabled = true;
-
-				// Generate and draw subway map
-				try
+				if (_enterSystemButton != null) _enterSystemButton.Enabled = true; _enterSystemButton.Visible = true;
+				try // subway map
 				{
-					int maxJumps = 3; // How many jumps out to show on the map
+					int maxJumps = 3; 
 					var systemsByDistance = GameFunctions.BreadthFirstFromOriginSystem(_selectedSystem, maxJumps);
 					DrawSubwayMap(systemsByDistance, maxJumps);
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine($"Error generating subway map: {ex.Message}");
-					// Optionally clear the picture box or show an error message
 					if (_subwayMapPictureBox != null) _subwayMapPictureBox.Image = null;
 				}
 			}
@@ -282,99 +250,16 @@ namespace Neb25.UI.Forms
 			{
 				return;
 			}
-
-			// Create bitmap to draw on
 			Bitmap mapBitmap = new Bitmap(_subwayMapPictureBox.Width, _subwayMapPictureBox.Height);
 			using (Graphics g = Graphics.FromImage(mapBitmap))
 			{
-				g.SmoothingMode = SmoothingMode.AntiAlias;
-				g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-				g.Clear(_subwayMapPictureBox.BackColor);
-
-				// --- Simple Radial Layout ---
-				PointF center = new PointF(mapBitmap.Width / 2f, mapBitmap.Height / 2f);
-				float maxRadius = Math.Min(center.X, center.Y) * 0.85f; // Use 85% of available space
-				float radiusStep = (maxJumps > 0) ? maxRadius / maxJumps : maxRadius;
-
-				Dictionary<StarSystem, PointF> nodePositions = new Dictionary<StarSystem, PointF>();
-				Dictionary<int, List<StarSystem>> systemsByLevel = systemsByDistance
-					.GroupBy(kvp => kvp.Value)
-					.ToDictionary(g => g.Key, g => g.Select(kvp => kvp.Key).ToList());
-
-				// Place origin
-				nodePositions[_selectedSystem] = center;
-
-				// Place other systems radially
-				for (int distance = 1; distance <= maxJumps; distance++)
-				{
-					if (systemsByLevel.TryGetValue(distance, out var systemsAtThisDistance))
-					{
-						float currentRadius = distance * radiusStep;
-						float angleStep = 360f / systemsAtThisDistance.Count;
-						float currentAngle = -90f; // Start at the top
-
-						foreach (var system in systemsAtThisDistance)
-						{
-							float angleRad = MathF.PI / 180f * currentAngle;
-							float x = center.X + currentRadius * MathF.Cos(angleRad);
-							float y = center.Y + currentRadius * MathF.Sin(angleRad);
-							nodePositions[system] = new PointF(x, y);
-							currentAngle += angleStep;
-						}
-					}
-				}
-
-				// --- Draw Connections ---
-				foreach (var kvp in systemsByDistance)
-				{
-					StarSystem system = kvp.Key;
-					int distance = kvp.Value;
-
-					if (distance > 0 && nodePositions.TryGetValue(system, out PointF pos1)) // Only draw connections for systems not at origin
-					{
-						// Find neighbors at distance - 1
-						foreach (var jumpSite in system.JumpSites)
-						{
-							if (jumpSite.Partner?.ParentStarSystem != null)
-							{
-								StarSystem neighbor = jumpSite.Partner.ParentStarSystem;
-								// Check if neighbor is in our map and is one step closer
-								if (systemsByDistance.TryGetValue(neighbor, out int neighborDistance) && neighborDistance == distance - 1)
-								{
-									if (nodePositions.TryGetValue(neighbor, out PointF pos2))
-									{
-										g.DrawLine(_subwayMapLinkPen, pos1, pos2);
-									}
-								}
-							}
-						}
-					}
-				}
-
-
-				// --- Draw Nodes & Labels ---
-				foreach (var kvp in nodePositions)
-				{
-					StarSystem system = kvp.Key;
-					PointF position = kvp.Value;
-					Brush nodeBrush = (system == _selectedSystem) ? _subwayMapOriginBrush : _subwayMapNodeBrush;
-
-					// Draw node
-					g.FillEllipse(nodeBrush, position.X - _subwayMapNodeRadius, position.Y - _subwayMapNodeRadius, _subwayMapNodeRadius * 2, _subwayMapNodeRadius * 2);
-
-					// Draw label (simple offset)
-					g.DrawString(system.Name, _subwayMapFont, _subwayMapTextBrush, position.X + _subwayMapNodeRadius + 2, position.Y - (_subwayMapFont.Height / 2f));
-				}
-			} // Dispose Graphics object
-
-			// Update PictureBox image (dispose old image first)
+				// tbd
+			}
 			Image? oldImage = _subwayMapPictureBox.Image;
 			_subwayMapPictureBox.Image = mapBitmap;
 			oldImage?.Dispose();
 		}
 
-
-		// --- Event Handlers ---
 
 		/// <summary>
 		/// Handles clicking the "Enter System" button in the info panel.
@@ -383,12 +268,12 @@ namespace Neb25.UI.Forms
 		{
 			if (_selectedSystem != null)
 			{
-				// Check if a view for this system is already open? Optional.
+				// tbd: Check if a view for this system is already open, and if so bring it to foreground
 				// For now, just open a new one.
 				try
 				{
 					SystemViewForm systemView = new SystemViewForm(_selectedSystem);
-					systemView.Show(this); // Show non-modally, owned by this form
+					systemView.Show(this);
 				}
 				catch (Exception ex)
 				{
@@ -399,34 +284,32 @@ namespace Neb25.UI.Forms
 
 		private void GalaxyPictureBox_MouseDown(object? sender, MouseEventArgs e)
 		{
-			// (MouseDown logic remains the same)
 			_lastMousePosition = e.Location; _mouseDownPosition = e.Location; _potentialClickTarget = null;
 			_isRotating = false; _isPanning = false; _isBoxSelecting = false;
 			if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Shift)
-			{
+			{ // box select
 				_isBoxSelecting = true; _selectionRectStartPoint = e.Location; _selectionRectCurrent = new Rectangle(e.Location, Size.Empty);
 				_selectedSystemsList.Clear(); _selectedSystem = null; if (_hoveredSystem != null) { _hoveredSystem = null; }
 				(sender as Control)!.Capture = true; (sender as Control)!.Cursor = Cursors.Cross; (sender as PictureBox)?.Invalidate();
 			}
 			else if (e.Button == MouseButtons.Left)
-			{
+			{ // lmb click on a star
 				_potentialClickTarget = FindStarSystemAtScreenPoint(e.Location); _isRotating = true;
 				(sender as Control)!.Capture = true; (sender as Control)!.Cursor = Cursors.NoMove2D;
 			}
 			else if (e.Button == MouseButtons.Right)
-			{
+			{ // rmb map panning
 				_isPanning = true; (sender as Control)!.Capture = true; (sender as Control)!.Cursor = Cursors.SizeAll;
 			}
 		}
 
 		private void GalaxyPictureBox_MouseMove(object? sender, MouseEventArgs e)
 		{
-			// (MouseMove logic remains the same)
 			Point currentMousePosition = e.Location; float deltaX = currentMousePosition.X - _lastMousePosition.X; float deltaY = currentMousePosition.Y - _lastMousePosition.Y;
 			bool needsRedraw = false; StarSystem? currentlyHovered = null;
 			if (_isBoxSelecting) { _selectionRectCurrent = NormalizeRectangle(_selectionRectStartPoint, currentMousePosition); needsRedraw = true; }
-			else if (_isRotating) { /* ... rotation ... */ needsRedraw = true; _lastMousePosition = currentMousePosition; }
-			else if (_isPanning) { /* ... panning ... */ needsRedraw = true; _lastMousePosition = currentMousePosition; }
+			else if (_isRotating) { needsRedraw = true; _lastMousePosition = currentMousePosition; }
+			else if (_isPanning) { needsRedraw = true; _lastMousePosition = currentMousePosition; }
 			else { currentlyHovered = FindStarSystemAtScreenPoint(currentMousePosition); if (currentlyHovered != _hoveredSystem) { _hoveredSystem = currentlyHovered; needsRedraw = true; } _lastMousePosition = currentMousePosition; }
 			if (needsRedraw && sender is PictureBox pb) { pb.Invalidate(); }
 		}
@@ -438,8 +321,7 @@ namespace Neb25.UI.Forms
 			bool needsRedraw = false;
 
 			if (wasBoxSelecting && e.Button == MouseButtons.Left)
-			{
-				// Finalize Box Selection
+			{ // box selection finished
 				_selectionRectCurrent = NormalizeRectangle(_selectionRectStartPoint, e.Location);
 				_selectedSystemsList.Clear();
 				foreach (var kvp in _systemScreenPositions) { Point systemPoint = new Point((int)kvp.Value.X, (int)kvp.Value.Y); if (_selectionRectCurrent.Contains(systemPoint)) { _selectedSystemsList.Add(kvp.Key); } }
@@ -480,7 +362,6 @@ namespace Neb25.UI.Forms
 
 		private void GalaxyPictureBox_MouseWheel(object? sender, MouseEventArgs e)
 		{
-			// (MouseWheel logic remains the same)
 			if (sender is not PictureBox pb) return; pb.Focus(); float zoomFactor = 1.15f; float delta = e.Delta > 0 ? 1.0f / zoomFactor : zoomFactor;
 			Vector3 direction = _cameraTarget - _cameraPosition; float distance = direction.Length(); float minDistance = 5.0f; float maxDistance = 15000.0f;
 			float newDistance = Math.Clamp(distance * delta, minDistance, maxDistance);
@@ -489,33 +370,28 @@ namespace Neb25.UI.Forms
 
 		private void GalaxyPictureBox_MouseLeave(object? sender, EventArgs e)
 		{
-			// (MouseLeave logic remains the same)
 			if (_hoveredSystem != null) { _hoveredSystem = null; (sender as PictureBox)?.Invalidate(); }
 		}
 
 		// --- Coordinate Transformation Helpers ---
 		private Vector2? WorldToScreen(Vector3 worldPos, Matrix4x4 viewProjectionMatrix, Size clientSize)
-		{ /* ... same ... */
+		{
 			Vector4 clipPos = Vector4.Transform(worldPos, viewProjectionMatrix); if (clipPos.W <= 0.0001f) return null; Vector3 ndcPos = new Vector3(clipPos.X / clipPos.W, clipPos.Y / clipPos.W, clipPos.Z / clipPos.W);
 			float screenX = (ndcPos.X + 1.0f) / 2.0f * clientSize.Width; float screenY = (1.0f - ndcPos.Y) / 2.0f * clientSize.Height; return new Vector2(screenX, screenY);
 		}
 		private bool IsValidScreenPoint(Vector2 point, Size clientSize, float margin = 0)
-		{ /* ... same ... */
+		{
 			if (!float.IsFinite(point.X) || !float.IsFinite(point.Y)) return false; float minX = -margin; float minY = -margin; float maxX = clientSize.Width + margin; float maxY = clientSize.Height + margin; return point.X >= minX && point.X <= maxX && point.Y >= minY && point.Y <= maxY;
 		}
 		private StarSystem? FindStarSystemAtScreenPoint(Point screenPoint, float maxDistance = 10f)
-		{ /* ... same ... */
+		{
 			StarSystem? closestSystem = null; float minDistanceSq = maxDistance * maxDistance; foreach (var kvp in _systemScreenPositions) { StarSystem system = kvp.Key; Vector2 systemScreenPos = kvp.Value; float dx = screenPoint.X - systemScreenPos.X; float dy = screenPoint.Y - systemScreenPos.Y; float distanceSq = dx * dx + dy * dy; if (distanceSq < minDistanceSq) { minDistanceSq = distanceSq; closestSystem = system; } }
 			return closestSystem;
 		}
 		private Rectangle NormalizeRectangle(Point p1, Point p2)
-		{ /* ... same ... */
+		{
 			int x = Math.Min(p1.X, p2.X); int y = Math.Min(p1.Y, p2.Y); int width = Math.Abs(p1.X - p2.X); int height = Math.Abs(p1.Y - p2.Y); return new Rectangle(x, y, width, height);
 		}
 
-		private void pictureBox1_Click(object sender, EventArgs e)
-		{
-
-		}
 	}
 }
