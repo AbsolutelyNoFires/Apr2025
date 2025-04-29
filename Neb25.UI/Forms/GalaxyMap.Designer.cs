@@ -1,6 +1,6 @@
 ﻿namespace Neb25.UI.Forms
 {
-	partial class Game
+	partial class GalaxyMap
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -19,9 +19,9 @@
 		{
 			galaxyPictureBox = new PictureBox();
 			selectedSystemInfoPanel = new Panel();
+			enterSystemButton = new Button();
 			systemNameLabel = new Label();
 			subwayMapPictureBox = new PictureBox();
-			enterSystemButton = new Button();
 			((System.ComponentModel.ISupportInitialize)galaxyPictureBox).BeginInit();
 			selectedSystemInfoPanel.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)subwayMapPictureBox).BeginInit();
@@ -48,6 +48,18 @@
 			selectedSystemInfoPanel.TabIndex = 1;
 			selectedSystemInfoPanel.Visible = false;
 			// 
+			// enterSystemButton
+			// 
+			enterSystemButton.Dock = DockStyle.Bottom;
+			enterSystemButton.Location = new Point(0, 160);
+			enterSystemButton.Name = "enterSystemButton";
+			enterSystemButton.Size = new Size(155, 23);
+			enterSystemButton.TabIndex = 3;
+			enterSystemButton.Text = "Enter System";
+			enterSystemButton.UseVisualStyleBackColor = true;
+			enterSystemButton.Visible = false;
+			enterSystemButton.Click += EnterSystemButton_Click;
+			// 
 			// systemNameLabel
 			// 
 			systemNameLabel.AutoSize = true;
@@ -59,32 +71,22 @@
 			// 
 			// subwayMapPictureBox
 			// 
-			subwayMapPictureBox.Location = new Point(12, 45);
+			subwayMapPictureBox.Dock = DockStyle.Top;
+			subwayMapPictureBox.Location = new Point(0, 0);
 			subwayMapPictureBox.Name = "subwayMapPictureBox";
-			subwayMapPictureBox.Size = new Size(100, 50);
+			subwayMapPictureBox.Size = new Size(155, 78);
 			subwayMapPictureBox.TabIndex = 2;
 			subwayMapPictureBox.TabStop = false;
 			subwayMapPictureBox.Visible = false;
-			subwayMapPictureBox.Click += pictureBox1_Click;
 			// 
-			// enterSystemButton
-			// 
-			enterSystemButton.Location = new Point(12, 89);
-			enterSystemButton.Name = "enterSystemButton";
-			enterSystemButton.Size = new Size(75, 23);
-			enterSystemButton.TabIndex = 3;
-			enterSystemButton.Text = "Enter System";
-			enterSystemButton.UseVisualStyleBackColor = true;
-			enterSystemButton.Visible = false;
-			// 
-			// Game
+			// GalaxyMap
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
 			Controls.Add(selectedSystemInfoPanel);
 			Controls.Add(galaxyPictureBox);
-			Name = "Game";
+			Name = "GalaxyMap";
 			Text = "Game";
 			((System.ComponentModel.ISupportInitialize)galaxyPictureBox).EndInit();
 			selectedSystemInfoPanel.ResumeLayout(false);

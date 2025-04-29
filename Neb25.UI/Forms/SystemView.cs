@@ -42,6 +42,7 @@ namespace Neb25.UI.Forms
 
 		public SystemViewForm(StarSystem system)
 		{
+			this.Text += system.Name;
 			InitializeComponent();
 			_system = system ?? throw new ArgumentNullException(nameof(system));
 
@@ -56,6 +57,7 @@ namespace Neb25.UI.Forms
 
 			// Initial Setup
 			CalculateInitialZoom();
+
 		}
 
 		private void SystemViewForm_Load(object sender, EventArgs e)
