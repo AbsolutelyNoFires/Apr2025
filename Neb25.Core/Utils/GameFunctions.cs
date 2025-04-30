@@ -1,15 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Neb25.Core.Galaxy;
+﻿using Neb25.Core.Galaxy;
 
 namespace Neb25.Core.Utils
 {
 	public class GameFunctions
 	{
+		/// <summary>
+		/// Helper method to sample from a Gaussian (normal) distribution.
+		/// Uses the Box-Muller transform.
+		/// </summary>
+		/// <param name="random">Random number generator.</param>
+		/// <param name="mean">Mean of the distribution.</param>
+		/// <param name="stdDev">Standard deviation of the distribution.</param>
+		/// <returns>A random sample from the distribution.</returns>
+		public static double SampleGaussian(Random random, double mean, double stdDev)
+		{
+			// Ensure stdDev is positive
+			stdDev = Math.Max(0.001, stdDev); // Avoid division by zero or negative stddev
+
+			double u1 = 1.0 - random.NextDouble(); // Uniform(0,1] random doubles
+			double u2 = 1.0 - random.NextDouble();
+			double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) *
+								   Math.Sin(2.0 * Math.PI * u2); // Random normal(0,1)
+			double randNormal = mean + stdDev * randStdNormal; // Random normal(mean,stdDev^2)
+			return randNormal;
+		}
 
 		/// <summary>
 		/// Performs a breadth-first search from the origin star system.

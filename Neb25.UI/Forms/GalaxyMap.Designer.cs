@@ -71,10 +71,10 @@
 			// 
 			// subwayMapPictureBox
 			// 
-			subwayMapPictureBox.Dock = DockStyle.Top;
+			subwayMapPictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 			subwayMapPictureBox.Location = new Point(0, 0);
 			subwayMapPictureBox.Name = "subwayMapPictureBox";
-			subwayMapPictureBox.Size = new Size(155, 78);
+			subwayMapPictureBox.Size = new Size(155, 183);
 			subwayMapPictureBox.TabIndex = 2;
 			subwayMapPictureBox.TabStop = false;
 			subwayMapPictureBox.Visible = false;

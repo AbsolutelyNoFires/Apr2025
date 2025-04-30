@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using System.Numerics;
 
 namespace Neb25.Core.Galaxy
 {
@@ -39,7 +33,7 @@ namespace Neb25.Core.Galaxy
 		/// <summary>
 		/// The partner jump point.
 		/// </summary>
-		public JumpSite Partner { get; set; } = null;
+		public JumpSite? Partner { get; set; } = null;
 
 		/// <summary>
 		/// Gets or sets the 3D position of the jump point within the parent star system.
@@ -53,11 +47,11 @@ namespace Neb25.Core.Galaxy
 		/// Initializes a new instance of the <see cref="StarSystem"/> class.
 		/// </summary>
 		/// <param name="name">The name of the star system.</param>
-		public JumpSite(StarSystem thisParentStarSystem, int thisNewJPNumber)
+		public JumpSite(StarSystem thisParentStarSystem)
 		{
 			Id = Guid.NewGuid();
-			Number = thisNewJPNumber;
 			ParentStarSystem = thisParentStarSystem;
+			Number = ParentStarSystem.JumpSites.Count + 1;
 			HasGateBuilt = false;
 			HasPartner = false;
 			Partner = null;

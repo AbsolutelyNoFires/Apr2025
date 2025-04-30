@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using Neb25.Core.Utils;
 
 namespace Neb25.Core.Galaxy
 {
@@ -17,9 +10,9 @@ namespace Neb25.Core.Galaxy
 		public Guid Id { get; set; }
 
 		/// <summary>
-		/// Galaxy friendly name
+		/// Galaxy friendly name.
 		/// </summary>
-		public string Name { get; set; } = new string("New Galaxy");
+		public string Name { get; set; }
 
 		/// <summary>
 		/// List of stars in the galaxy.
@@ -27,21 +20,17 @@ namespace Neb25.Core.Galaxy
 		public List<StarSystem> StarSystems { get; set; }
 
 		/// <summary>
-		/// Constructor for a Galaxy.
+		/// The game settings.
 		/// </summary>
-		/// <param name="name">Name of the system.</param>
-		public Galaxy()
-		{
-			Id = Guid.NewGuid(); // Assign a unique ID
-			StarSystems = new List<StarSystem>(); // Initialize the list
-		}
+		public GameSettingsObject GameSettings { get; set; }
 
-		/// <summary>
-		/// Add star system to galaxy.
-		/// </summary>
-		public void AddStarSystem(StarSystem star)
+		public Galaxy(Random seed)
 		{
-			StarSystems.Add(star);
+			Id = Guid.NewGuid();
+			Name = "Milky Way";
+			StarSystems = new List<StarSystem>();
+			GameSettingsObject newGameSettingsObject = new(1, "Placeholder");
+			GameSettings = newGameSettingsObject;
 		}
 	}
 }

@@ -149,19 +149,33 @@ namespace Neb25.UI.Forms
 							{
 								Vector2? screenPos1 = WorldToScreen(system.Position, viewProjectionMatrix, pb.ClientSize);
 								Vector2? screenPos2 = WorldToScreen(partnerSystem.Position, viewProjectionMatrix, pb.ClientSize);
-								if (screenPos1.HasValue && IsValidScreenPoint(screenPos1.Value, pb.ClientSize)) _systemScreenPositions[system] = screenPos1.Value;
-								if (screenPos2.HasValue && IsValidScreenPoint(screenPos2.Value, pb.ClientSize)) _systemScreenPositions[partnerSystem] = screenPos2.Value;
-								if (screenPos1.HasValue && IsValidScreenPoint(screenPos1.Value, pb.ClientSize, 0) && screenPos2.HasValue && IsValidScreenPoint(screenPos2.Value, pb.ClientSize, 0))
+								if (screenPos1.HasValue) _systemScreenPositions[system] = screenPos1.Value;
+								if (screenPos2.HasValue) _systemScreenPositions[partnerSystem] = screenPos2.Value; // show the jump lane even when origin and partner are offscreen, to a certain number of pixels
+								int howFarAwayToStillShowJumpLanes = 1000; // pixels offscreen
+								if (screenPos1.HasValue && IsValidScreenPoint(screenPos1.Value, pb.ClientSize, howFarAwayToStillShowJumpLanes) &&
+									screenPos2.HasValue && IsValidScreenPoint(screenPos2.Value, pb.ClientSize, howFarAwayToStillShowJumpLanes))
 								{
-									bool isLinkHighlighted = selectedSet.Contains(system) && selectedSet.Contains(partnerSystem);
+									bool isLinkHighlighted = selectedSet.Contains(system) || selectedSet.Contains(partnerSystem) || system == _selectedSystem;
 									Pen currentLinkPen = isLinkHighlighted ? _jumpLinkHighlightPen : _jumpLinkPen;
-									g.DrawLine(currentLinkPen, screenPos1.Value.X, screenPos1.Value.Y, screenPos2.Value.X, screenPos2.Value.Y);
+									try
+									{
+										g.DrawLine(currentLinkPen, screenPos1.Value.X, screenPos1.Value.Y, screenPos2.Value.X, screenPos2.Value.Y);
+									}
+									catch (OverflowException oe)
+									{
+										// Catch potential overflow if coordinates are still too large for GDI+
+										Console.WriteLine($"GDI Overflow drawing line between {system.Name} and {partnerSystem.Name}. Pos1: {screenPos1}, Pos2: {screenPos2}. Error: {oe.Message}");
+									}
 								}
+
+
 							}
 						}
+
+
+
 					}
 				}
-			}
 
 
 			// --- Draw Star Systems ---
@@ -179,35 +193,44 @@ namespace Neb25.UI.Forms
 						}
 						else continue;
 					}
+					// Determine star size and highlight status
 					float baseStarDrawSize = 3f;
 					float hoverSizeIncrease = 1.5f;
 					float starDrawSize = (system == _hoveredSystem) ? baseStarDrawSize + hoverSizeIncrease : baseStarDrawSize;
-					float highlightSize = baseStarDrawSize + 4f;
+					float highlightSize = baseStarDrawSize + 4f; // Size of the selection circle
+					// Determine which highlight pen to use (if any)
 					Pen? currentHighlightPen = null;
-					if (selectedSet.Contains(system)) { currentHighlightPen = _multiSelectionPen; }
-					else if (system == _selectedSystem) { currentHighlightPen = _selectionPen; }
-					if (currentHighlightPen != null) { g.DrawEllipse(currentHighlightPen, screenPosValue.X - highlightSize / 2, screenPosValue.Y - highlightSize / 2, highlightSize, highlightSize); }
+					if (selectedSet.Contains(system)) { currentHighlightPen = _multiSelectionPen; } // Multi-select highlight
+					else if (system == _selectedSystem) { currentHighlightPen = _selectionPen; }   // Single-select highlight
+					// Draw highlight circle if selected
+					if (currentHighlightPen != null)
+					{
+						g.DrawEllipse(currentHighlightPen, screenPosValue.X - highlightSize / 2, screenPosValue.Y - highlightSize / 2, highlightSize, highlightSize);
+					}
+					// Draw the star itself
 					g.FillEllipse(_starBrush, screenPosValue.X - starDrawSize / 2, screenPosValue.Y - starDrawSize / 2, starDrawSize, starDrawSize);
+
 				}
 			}
 
 
-			// --- Box select systems, mouse over systems for their name ---
-			if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); }
-			if (!_isBoxSelecting && _hoveredSystem != null && _systemScreenPositions.TryGetValue(_hoveredSystem, out Vector2 hoveredPos))
-			{
-				string text = _hoveredSystem.Name;
-				SizeF textSize = g.MeasureString(text, _tooltipFont);
-				float padding = 4f;
-				float tooltipX = hoveredPos.X + 8f; float tooltipY = hoveredPos.Y - textSize.Height - 8f;
-				if (tooltipX + textSize.Width + 2 * padding > pb.ClientSize.Width) tooltipX = pb.ClientSize.Width - textSize.Width - 2 * padding;
-				if (tooltipY < 0) tooltipY = hoveredPos.Y + 8f; if (tooltipX < 0) tooltipX = 0;
-				RectangleF bgRect = new RectangleF(tooltipX, tooltipY, textSize.Width + 2 * padding, textSize.Height + 2 * padding);
-				PointF textPos = new PointF(tooltipX + padding, tooltipY + padding);
-				g.FillRectangle(_tooltipBackgroundBrush, bgRect); g.DrawRectangle(_tooltipBorderPen, bgRect.X, bgRect.Y, bgRect.Width, bgRect.Height);
-				g.DrawString(text, _tooltipFont, _tooltipTextBrush, textPos);
+				// --- Box select systems, mouse over systems for their name ---
+				if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); }
+				if (!_isBoxSelecting && _hoveredSystem != null && _systemScreenPositions.TryGetValue(_hoveredSystem, out Vector2 hoveredPos))
+				{
+					string text = _hoveredSystem.Name;
+					SizeF textSize = g.MeasureString(text, _tooltipFont);
+					float padding = 4f;
+					float tooltipX = hoveredPos.X + 8f; float tooltipY = hoveredPos.Y - textSize.Height - 8f;
+					if (tooltipX + textSize.Width + 2 * padding > pb.ClientSize.Width) tooltipX = pb.ClientSize.Width - textSize.Width - 2 * padding;
+					if (tooltipY < 0) tooltipY = hoveredPos.Y + 8f; if (tooltipX < 0) tooltipX = 0;
+					RectangleF bgRect = new RectangleF(tooltipX, tooltipY, textSize.Width + 2 * padding, textSize.Height + 2 * padding);
+					PointF textPos = new PointF(tooltipX + padding, tooltipY + padding);
+					g.FillRectangle(_tooltipBackgroundBrush, bgRect); g.DrawRectangle(_tooltipBorderPen, bgRect.X, bgRect.Y, bgRect.Width, bgRect.Height);
+					g.DrawString(text, _tooltipFont, _tooltipTextBrush, textPos);
+				}
 			}
-		}
+	}
 
 		/// <summary>
 		/// Updates the information panel based on the currently selected system.
@@ -302,6 +325,7 @@ namespace Neb25.UI.Forms
 				_isPanning = true; (sender as Control)!.Capture = true; (sender as Control)!.Cursor = Cursors.SizeAll;
 			}
 		}
+
 
 		private void GalaxyPictureBox_MouseMove(object? sender, MouseEventArgs e)
 		{
