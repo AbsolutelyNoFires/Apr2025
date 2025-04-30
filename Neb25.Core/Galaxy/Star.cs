@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Neb25.Core.Galaxy
+﻿namespace Neb25.Core.Galaxy
 {
 	public class Star
 	{
@@ -29,21 +23,34 @@ namespace Neb25.Core.Galaxy
 		/// </summary>
 		public int Size { get; set; }
 
-		// Add more properties later
+		/// <summary>
+		/// Parent star system in which the star lives.
+		/// </summary>
+		public StarSystem ParentStarSystem { get; set; }
+
+		/// <summary>
+		/// List of planets in orbit of this star, if any.
+		/// </summary>
+		public List<Planet> Planets { get; set; }
+
 
 		/// <summary>
 		/// Constructor for a Star.
 		/// </summary>
-		/// <param name="name">Name of the Star.</param>
-		/// <param name="type">Type of the star.</param>
-		/// <param name="size">Size of the star.</param>
-		public Star(string name, string type, int size)
+		public Star(StarSystem parentStarSystem)
 		{
 			Id = Guid.NewGuid();
-			Name = name;
-			Type = type;
-			Size = size;
-			// Initialize other properties/lists here if needed
+			int parentSystemNumStars = parentStarSystem.Stars.Count;
+			string newLetter = ((char)65+ parentSystemNumStars).ToString();
+			Name = parentStarSystem.Name+' '+ newLetter;
+			Type = "Red Dwarf";
+			Size = 42069;
+			ParentStarSystem = parentStarSystem;
+			Planets = new List<Planet>();
+		}
+		public override string ToString()
+		{
+			return $"{Name} - {Planets.Count} Planets";
 		}
 	}
 }

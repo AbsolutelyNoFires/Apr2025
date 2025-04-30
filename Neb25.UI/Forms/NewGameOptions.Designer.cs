@@ -29,11 +29,15 @@
 		private void InitializeComponent()
 		{
 			txt_NGSeedPhrase = new TextBox();
-			label1 = new Label();
-			label2 = new Label();
-			txt_NGNumSys = new TextBox();
+			lbl_SeedPhrase = new Label();
+			lbl_StarSysNum = new Label();
 			btn_backtomainmenu = new Button();
 			btn_launchgame = new Button();
+			num_NGNumSys = new NumericUpDown();
+			num_GalaxyArms = new NumericUpDown();
+			lbl_GalaxyArms = new Label();
+			((System.ComponentModel.ISupportInitialize)num_NGNumSys).BeginInit();
+			((System.ComponentModel.ISupportInitialize)num_GalaxyArms).BeginInit();
 			SuspendLayout();
 			// 
 			// txt_NGSeedPhrase
@@ -47,34 +51,23 @@
 			txt_NGSeedPhrase.Text = "Whimpering Willows Wandering";
 			txt_NGSeedPhrase.TextChanged += txt_NGSeedPhrase_TextChanged;
 			// 
-			// label1
+			// lbl_SeedPhrase
 			// 
-			label1.AutoSize = true;
-			label1.Location = new Point(122, 84);
-			label1.Name = "label1";
-			label1.Size = new Size(70, 15);
-			label1.TabIndex = 1;
-			label1.Text = "Seed Phrase";
+			lbl_SeedPhrase.AutoSize = true;
+			lbl_SeedPhrase.Location = new Point(122, 84);
+			lbl_SeedPhrase.Name = "lbl_SeedPhrase";
+			lbl_SeedPhrase.Size = new Size(70, 15);
+			lbl_SeedPhrase.TabIndex = 1;
+			lbl_SeedPhrase.Text = "Seed Phrase";
 			// 
-			// label2
+			// lbl_StarSysNum
 			// 
-			label2.AutoSize = true;
-			label2.Location = new Point(82, 113);
-			label2.Name = "label2";
-			label2.Size = new Size(110, 15);
-			label2.TabIndex = 2;
-			label2.Text = "Number of systems";
-			// 
-			// txt_NGNumSys
-			// 
-			txt_NGNumSys.Location = new Point(198, 110);
-			txt_NGNumSys.MaxLength = 32;
-			txt_NGNumSys.Name = "txt_NGNumSys";
-			txt_NGNumSys.PlaceholderText = "Sinew Sample Sunday";
-			txt_NGNumSys.Size = new Size(100, 23);
-			txt_NGNumSys.TabIndex = 3;
-			txt_NGNumSys.Text = "750";
-			txt_NGNumSys.TextChanged += txt_NGNumSys_TextChanged;
+			lbl_StarSysNum.AutoSize = true;
+			lbl_StarSysNum.Location = new Point(82, 113);
+			lbl_StarSysNum.Name = "lbl_StarSysNum";
+			lbl_StarSysNum.Size = new Size(110, 15);
+			lbl_StarSysNum.TabIndex = 2;
+			lbl_StarSysNum.Text = "Number of systems";
 			// 
 			// btn_backtomainmenu
 			// 
@@ -84,7 +77,7 @@
 			btn_backtomainmenu.TabIndex = 4;
 			btn_backtomainmenu.Text = "Back to main menu";
 			btn_backtomainmenu.UseVisualStyleBackColor = true;
-			btn_backtomainmenu.Click += btn_backtomainmenu_Click;
+			btn_backtomainmenu.Click += btn_BackToMainMenu_Click;
 			// 
 			// btn_launchgame
 			// 
@@ -94,21 +87,53 @@
 			btn_launchgame.TabIndex = 5;
 			btn_launchgame.Text = "Launch game";
 			btn_launchgame.UseVisualStyleBackColor = true;
-			btn_launchgame.Click += btn_launchgame_Click;
+			btn_launchgame.Click += btn_LaunchGame_Click;
+			// 
+			// num_NGNumSys
+			// 
+			num_NGNumSys.Location = new Point(198, 110);
+			num_NGNumSys.Maximum = new decimal(new int[] { 99999, 0, 0, 0 });
+			num_NGNumSys.Name = "num_NGNumSys";
+			num_NGNumSys.Size = new Size(120, 23);
+			num_NGNumSys.TabIndex = 6;
+			num_NGNumSys.Value = new decimal(new int[] { 750, 0, 0, 0 });
+			// 
+			// num_GalaxyArms
+			// 
+			num_GalaxyArms.Location = new Point(198, 139);
+			num_GalaxyArms.Maximum = new decimal(new int[] { 99, 0, 0, 0 });
+			num_GalaxyArms.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+			num_GalaxyArms.Name = "num_GalaxyArms";
+			num_GalaxyArms.Size = new Size(120, 23);
+			num_GalaxyArms.TabIndex = 8;
+			num_GalaxyArms.Value = new decimal(new int[] { 4, 0, 0, 0 });
+			// 
+			// lbl_GalaxyArms
+			// 
+			lbl_GalaxyArms.AutoSize = true;
+			lbl_GalaxyArms.Location = new Point(120, 141);
+			lbl_GalaxyArms.Name = "lbl_GalaxyArms";
+			lbl_GalaxyArms.Size = new Size(72, 15);
+			lbl_GalaxyArms.TabIndex = 7;
+			lbl_GalaxyArms.Text = "Galaxy Arms";
 			// 
 			// NewGameOptions
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
 			AutoScaleMode = AutoScaleMode.Font;
 			ClientSize = new Size(800, 450);
+			Controls.Add(num_GalaxyArms);
+			Controls.Add(lbl_GalaxyArms);
+			Controls.Add(num_NGNumSys);
 			Controls.Add(btn_launchgame);
 			Controls.Add(btn_backtomainmenu);
-			Controls.Add(txt_NGNumSys);
-			Controls.Add(label2);
-			Controls.Add(label1);
+			Controls.Add(lbl_StarSysNum);
+			Controls.Add(lbl_SeedPhrase);
 			Controls.Add(txt_NGSeedPhrase);
 			Name = "NewGameOptions";
 			Text = "NewGameOptions";
+			((System.ComponentModel.ISupportInitialize)num_NGNumSys).EndInit();
+			((System.ComponentModel.ISupportInitialize)num_GalaxyArms).EndInit();
 			ResumeLayout(false);
 			PerformLayout();
 		}
@@ -116,10 +141,12 @@
 		#endregion
 
 		private TextBox txt_NGSeedPhrase;
-		private Label label1;
-		private Label label2;
-		private TextBox txt_NGNumSys;
+		private Label lbl_SeedPhrase;
+		private Label lbl_StarSysNum;
 		private Button btn_backtomainmenu;
 		private Button btn_launchgame;
+		private NumericUpDown num_NGNumSys;
+		private NumericUpDown num_GalaxyArms;
+		private Label lbl_GalaxyArms;
 	}
 }
