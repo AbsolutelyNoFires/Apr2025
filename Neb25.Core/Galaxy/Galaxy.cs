@@ -23,6 +23,12 @@ namespace Neb25.Core.Galaxy
 		/// The game settings.
 		/// </summary>
 		public GameSettingsObject GameSettings { get; set; }
+		public List<JumpConnection> JumpConnections { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="seed"></param>
 
 		public Galaxy(Random seed)
 		{
@@ -31,6 +37,7 @@ namespace Neb25.Core.Galaxy
 			StarSystems = new List<StarSystem>();
 			GameSettingsObject newGameSettingsObject = new(1, "Placeholder");
 			GameSettings = newGameSettingsObject;
+			JumpConnections = new List<JumpConnection>();
 		}
 	}
 }

@@ -40,9 +40,10 @@ namespace Neb25.Core.Galaxy
 		/// Coordinates are relative to the system's primary star (0,0,0).
 		/// </summary>
 		public Vector3 Position { get; set; }
-
-
-
+		/// <summary>
+		/// Name of the JP, ie 'Star: Sol - JP 1'
+		/// </summary>
+		public string Name { get; set; }
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StarSystem"/> class.
 		/// </summary>
@@ -56,6 +57,8 @@ namespace Neb25.Core.Galaxy
 			HasPartner = false;
 			Partner = null;
 			Position = Vector3.Zero;
+			Name = thisParentStarSystem.Name + " - JP " + Number.ToString();
+			thisParentStarSystem.JumpSites.Add(this);
 		}
 	}
 }

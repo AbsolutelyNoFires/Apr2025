@@ -1,6 +1,8 @@
-﻿namespace Neb25.UI.Forms
+﻿
+namespace Neb25.UI.Forms
+
 {
-	partial class SystemViewForm
+	public partial class SystemView : Form
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -16,13 +18,6 @@
 			if (disposing && (components != null))
 			{
 				components.Dispose();
-				// Dispose custom graphics objects
-				_starBrush?.Dispose();
-				_planetBrush?.Dispose();
-				_jumpSiteBrush?.Dispose();
-				_jumpSiteConnectedBrush?.Dispose();
-				_infoFont?.Dispose();
-				_infoBrush?.Dispose();
 			}
 			base.Dispose(disposing);
 		}
@@ -97,7 +92,6 @@
 			MinimumSize = new Size(600, 400);
 			Name = "SystemViewForm";
 			Text = "System:";
-			Load += SystemViewForm_Load;
 			((System.ComponentModel.ISupportInitialize)systemPictureBox).EndInit();
 			ResumeLayout(false);
 			PerformLayout();

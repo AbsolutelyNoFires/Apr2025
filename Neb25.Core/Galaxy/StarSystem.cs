@@ -31,7 +31,7 @@ namespace Neb25.Core.Galaxy
 		/// <summary>
 		/// Gets sets the primary star of this star system.
 		/// </summary>
-		public Star PrimaryStar { get; set; }
+		public Star? PrimaryStar { get; set; }
 
 		/// <summary>
 		/// Gets the list of planets within this star system.
@@ -62,14 +62,15 @@ namespace Neb25.Core.Galaxy
 		public StarSystem(Galaxy galaxy)
 		{
 			Id = Guid.NewGuid();
-			Name = "Star: " + Id.ToString().Substring(27);
+			Name = "Star: " + Id.ToString().Substring(30);
 			Position = Vector3.Zero;
 			Stars = new List<Star>();
-			PrimaryStar = new Star(this);
 			Planets = new List<Planet>();
 			JumpSites = new List<JumpSite>();
 			ConnectedStarSystems = new List<StarSystem>();
 			ParentGalaxy = galaxy;
+			galaxy.StarSystems.Add(this);
+
 		}
 
 		// Override ToString for easier debugging or display

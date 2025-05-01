@@ -41,12 +41,17 @@
 		{
 			Id = Guid.NewGuid();
 			int parentSystemNumStars = parentStarSystem.Stars.Count;
-			string newLetter = ((char)65+ parentSystemNumStars).ToString();
-			Name = parentStarSystem.Name+' '+ newLetter;
+			int alphaStarNum = 65 + parentSystemNumStars;
+			string newLetter = ((char)alphaStarNum).ToString();
+			Name = parentStarSystem.Name+" ("+ newLetter+")";
 			Type = "Red Dwarf";
 			Size = 42069;
 			ParentStarSystem = parentStarSystem;
 			Planets = new List<Planet>();
+
+			parentStarSystem.Stars.Add(this);
+			if (parentSystemNumStars==0) { parentStarSystem.PrimaryStar = this; }
+
 		}
 		public override string ToString()
 		{

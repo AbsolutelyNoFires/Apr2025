@@ -14,6 +14,7 @@
 			ParentPlanet = parentPlanet;
 			OrbitalIndex = ParentPlanet.Moons.Count;
 			Name = parentPlanet.Name + " - Moon " + OrbitalIndex;
+			parentPlanet.Moons.Add(this);
 		}
 	}
 }

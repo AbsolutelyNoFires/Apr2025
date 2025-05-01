@@ -4,6 +4,69 @@ namespace Neb25.Core.Utils
 {
 	public class GameFunctions
 	{
+
+		/// <summary>
+		/// Returns the N number of nearest systems in galactic space from an origin starsystem,
+		/// that are also within a specified radius.
+		/// Uses squared distance comparison initially for efficiency, then calculates Sqrt only when needed.
+		/// </summary>
+		/// <param name="originStarSystem">The origin for the search.</param>
+		/// <param name="NToReturn">The maximum number of nearest systems to return.</param>
+		/// <param name="withinRadius">The maximum search radius from the origin system.</param>
+		/// <returns>A dictionary where keys are nearby StarSystems (up to NToReturn) and values are their actual distance from the originStarSystem, sorted by distance.</returns>
+		public static Dictionary<StarSystem, double> NearbyStarSystems(StarSystem originStarSystem, int NToReturn, double withinRadius)
+		{
+			// Use squared distance for initial filtering to avoid unnecessary Sqrt calculations
+			double withinRadiusSquared = withinRadius * withinRadius;
+			var systemsWithinRadius = new List<KeyValuePair<StarSystem, double>>(); // Use a list to store potential candidates with squared distance
+
+			// Ensure ParentGalaxy and StarSystems are not null before iterating
+			if (originStarSystem?.ParentGalaxy?.StarSystems == null)
+			{
+				// Or throw an exception, depending on desired behavior
+				return [];
+			}
+
+			foreach (StarSystem thisSys in originStarSystem.ParentGalaxy.StarSystems)
+			{
+				// Skip the origin system itself
+				if (thisSys == originStarSystem)
+				{
+					continue;
+				}
+
+				float diffX = thisSys.Position.X - originStarSystem.Position.X;
+				float diffY = thisSys.Position.Y - originStarSystem.Position.Y;
+				float diffZ = thisSys.Position.Z - originStarSystem.Position.Z;
+
+				// Calculate squared distance
+				double distSq = (diffX * diffX) + (diffY * diffY) + (diffZ * diffZ);
+
+				// Filter by squared radius
+				if (distSq < withinRadiusSquared)
+				{
+					// Add the system and its *squared* distance for now
+					systemsWithinRadius.Add(new KeyValuePair<StarSystem, double>(thisSys, distSq));
+				}
+			}
+
+			// Now, sort the systems within the radius by their SQUARED distance (result is the same as sorting by actual distance)
+			// Take the nearest NToReturn
+			// Then, calculate the actual distance (Sqrt) only for the ones we are returning
+			// And convert back to a Dictionary
+
+			Dictionary<StarSystem, double> result = systemsWithinRadius
+				.OrderBy(kvp => kvp.Value) // Sort by squared distance (ascending)
+				.Take(NToReturn)           // Get the top N results
+				.ToDictionary(              // Convert back to a dictionary
+					kvp => kvp.Key,        // Key is the StarSystem
+					kvp => Math.Sqrt(kvp.Value) // Value is the actual distance (now we calculate Sqrt)
+				);
+
+			return result;
+		}
+
+
 		/// <summary>
 		/// Helper method to sample from a Gaussian (normal) distribution.
 		/// Uses the Box-Muller transform.

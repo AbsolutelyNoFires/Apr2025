@@ -13,7 +13,7 @@ namespace Neb25.UI.Forms
 {
 	public partial class GalaxyMap : Form
 	{
-		private readonly Core.Galaxy.Galaxy _galaxy;
+		private readonly Galaxy _galaxy;
 
 		// --- Camera State ---
 		private Vector3 _cameraPosition = new Vector3(0, 0, 500);
@@ -79,7 +79,7 @@ namespace Neb25.UI.Forms
 		/// Constructor for the GalaxyMap form.
 		/// </summary>
 		/// <param name="galaxy">The Galaxy object which is this 'game save' containing the player and NPCs and everything, created initially by the NewGameOptions.</param>
-		public GalaxyMap(Core.Galaxy.Galaxy galaxy)
+		public GalaxyMap(Galaxy galaxy)
 		{
 			InitializeComponent();
 			_galaxy = galaxy ?? throw new ArgumentNullException(nameof(galaxy));
@@ -432,7 +432,7 @@ namespace Neb25.UI.Forms
 				// For now, just open a new one.
 				try
 				{
-					SystemViewForm systemView = new SystemViewForm(_selectedSystem);
+					SystemView systemView = new SystemView(_selectedSystem);
 					systemView.Show(this);
 				}
 				catch (Exception ex)
@@ -660,7 +660,8 @@ namespace Neb25.UI.Forms
 
 		private void GalaxyPictureBox_MouseWheel(object? sender, MouseEventArgs e)
 		{
-			if (sender is not PictureBox pb) return; pb.Focus();
+			if (sender is not PictureBox pb) return;
+			pb.Focus();
 			float zoomFactor = 1.15f;
 			float delta = e.Delta > 0 ? 1.0f / zoomFactor : zoomFactor;
 			Vector3 direction = _cameraTarget - _cameraPosition;

@@ -20,9 +20,10 @@
 			List<StarSystem> unpackedSystems = new();
 			for (int i = 0; i < JumpSites.Count; i++) 
 			{
-				unpackedSystems[i] = jumpSites[i].ParentStarSystem;
+				unpackedSystems.Add(jumpSites[i].ParentStarSystem);
 			}
 			StarSystems = unpackedSystems;
+			jumpSites[0].ParentStarSystem.ParentGalaxy.JumpConnections.Add(this);
 		}
 	}
 }

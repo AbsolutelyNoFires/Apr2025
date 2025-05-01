@@ -9,8 +9,8 @@
 			List<Planet> newPlanets = new();
 			for (int i = 0; i < numWorlds; i++) {
 				Planet newPlanet = PlanetGenerator.GeneratePlanet(newStar, seed);
+				newPlanet.SemiMajorAxis *= (float)seed.NextDouble();
 			}
-			parentStarSystem.Stars.Add(newStar);
 			return newStar;
 		}
 	}
