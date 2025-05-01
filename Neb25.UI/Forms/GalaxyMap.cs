@@ -13,7 +13,6 @@ namespace Neb25.UI.Forms
 {
 	public partial class GalaxyMap : Form
 	{
-		private readonly Galaxy _galaxy;
 
 		// --- Camera State ---
 		private Vector3 _cameraPosition = new Vector3(0, 0, 500);
@@ -543,6 +542,55 @@ namespace Neb25.UI.Forms
 			}
 			else if (_isPanning)
 			{
+				// --- Apply Panning ---
+				if (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0)
+				{
+					// Calculate pan speed based on distance (pan faster when zoomed out)
+					float distance = (_cameraPosition - _cameraTarget).Length();
+					float panSpeed = distance * 0.001f; // Adjust sensitivity
+
+					// Get camera's right and up vectors
+					Vector3 direction = Vector3.Normalize(_cameraTarget - _cameraPosition);
+					Vector3 right = Vector3.Normalize(Vector3.Cross(direction, _cameraUp));
+					// Ensure Up is orthogonal after potential rotations
+					Vector3 localUp = Vector3.Normalize(Vector3.Cross(right, direction));
+
+
+					// Calculate movement vector
+					Vector3 moveX = right * -deltaX * panSpeed;
+					Vector3 moveY = localUp * deltaY * panSpeed; // Positive Y is usually up in world space
+
+					// Update camera position and target
+					_cameraPosition += moveX + moveY;
+					_cameraTarget += moveX + moveY;
+
+					needsRedraw = true;
+				}
+			}
+			else // Not dragging, just moving the mouse
+			{
+				// Find system under cursor for hover effect/tooltip
+				currentlyHovered = FindStarSystemAtScreenPoint(currentMousePosition);
+				if (currentlyHovered != _hoveredSystem)
+				{
+					_hoveredSystem = currentlyHovered;
+					needsRedraw = true; // Need redraw to show/hide hover/tooltip
+				}
+			}
+			_lastMousePosition = currentMousePosition; // Update last position for next frame
+
+			// Trigger redraw if needed
+			if (needsRedraw && sender is PictureBox pb)
+			{
+				pb.Invalidate();
+			}
+		}
+
+
+					needsRedraw = true;
+				}
+			}
+			else if (_isPanning) {
 				// --- Apply Panning ---
 				if (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0)
 				{
