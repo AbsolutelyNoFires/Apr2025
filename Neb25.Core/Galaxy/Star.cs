@@ -155,5 +155,18 @@ namespace Neb25.Core.Galaxy
 			// Return the constructed string
 			return result;
 		}
+
+
+		public string StarFacts()
+		{
+			string result;
+			result = $"Lum: {Math.Round(SolarLuminosity,4)}, Rad: {Math.Round(SolarRadius,2)}, Temp: {Math.Round(TempKelvin,2)}, Mass: {Math.Round(SolarMasses,2)}, Size: {Size}, Age in billions: {AgeInGY}";
+
+
+			if (AgeInGY < 1) { result += " - Young star"; }
+			if (AgeInGY >= 12) { result += " - Ancient star"; }
+			return result;
+
+		}
 	}
 }

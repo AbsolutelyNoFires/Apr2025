@@ -75,6 +75,48 @@ namespace Neb25.UI.Forms
 		// --- Optimization ---
 		private HashSet<string> _drawnLinks = new HashSet<string>();
 
+
+
+
+
+		// Add this method to determine the brush color based on star properties.
+		private Brush GetStarBrush(Star star)
+		{
+			// Example logic to determine brush color based on star properties
+			if (star.TempKelvin > 10000) // Hot stars
+			{
+				return Brushes.Blue;
+			}
+			else if (star.TempKelvin > 7500) // Warm stars
+			{
+				return Brushes.White;
+			}
+			else if (star.TempKelvin > 5000) // Cooler stars
+			{
+				return Brushes.Yellow;
+			}
+			else if (star.TempKelvin > 3500) // Cool stars
+			{
+				return Brushes.Orange;
+			}
+			else // Very cool stars
+			{
+				return Brushes.Red;
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
 		/// <summary>
 		/// Constructor for the GalaxyMap form.
 		/// </summary>
@@ -186,48 +228,61 @@ namespace Neb25.UI.Forms
 					}
 				}
 
-				// --- Draw Star Systems ---
-				if (_galaxy?.StarSystems != null)
+			
+				// draw systems
+				foreach (var system in _galaxy.StarSystems)
 				{
-					foreach (var system in _galaxy.StarSystems)
+					if (!_systemScreenPositions.TryGetValue(system, out Vector2 screenPosValue))
 					{
-						if (!_systemScreenPositions.TryGetValue(system, out Vector2 screenPosValue))
+						Vector2? screenPos = WorldToScreen(system.GalacticPosition, viewProjectionMatrix, pb.ClientSize);
+						if (screenPos.HasValue && IsValidScreenPoint(screenPos.Value, pb.ClientSize, 50))
 						{
-							Vector2? screenPos = WorldToScreen(system.GalacticPosition, viewProjectionMatrix, pb.ClientSize);
-							if (screenPos.HasValue && IsValidScreenPoint(screenPos.Value, pb.ClientSize, 50))
-							{
-								screenPosValue = screenPos.Value;
-								_systemScreenPositions[system] = screenPosValue;
-							}
-							else continue;
+							screenPosValue = screenPos.Value;
+							_systemScreenPositions[system] = screenPosValue;
 						}
-						// Determine star size and highlight status
-						float baseStarDrawSize = 3f;
-						float hoverSizeIncrease = 1.5f;
-						float starDrawSize = (system == _hoveredSystem) ? baseStarDrawSize + hoverSizeIncrease : baseStarDrawSize;
-						float highlightSize = baseStarDrawSize + 4f; // Size of the selection circle
-																	 // Determine which highlight pen to use (if any)
-						Pen? currentHighlightPen = null;
-						if (selectedSet.Contains(system)) { currentHighlightPen = _multiSelectionPen; } // Multi-select highlight
-						else if (system == _selectedSystem) { currentHighlightPen = _selectionPen; }   // Single-select highlight
-																									   // Draw highlight circle if selected
-						if (currentHighlightPen != null)
-						{
-							g.DrawEllipse(currentHighlightPen, screenPosValue.X - highlightSize / 2, screenPosValue.Y - highlightSize / 2, highlightSize, highlightSize);
-						}
-						// Draw the star itself
-						g.FillEllipse(_starBrush, screenPosValue.X - starDrawSize / 2, screenPosValue.Y - starDrawSize / 2, starDrawSize, starDrawSize);
-
+						else continue;
 					}
-				}
 
+					// Determine star size and highlight status
+					double baseStarDrawSize = 3;
+					double brushSizeMult = 1; 
+					if (system.PrimaryStar.SolarLuminosity > 1) {brushSizeMult += 1;} else if (system.PrimaryStar.SolarLuminosity > 2) brushSizeMult += 2;
+					if (system.PrimaryStar.SolarLuminosity < 0.5) { brushSizeMult -= 0.15; } else if (system.PrimaryStar.SolarLuminosity <= 0.25) brushSizeMult -= 0.2;
+					float thisBrushDraw = (float)(baseStarDrawSize * brushSizeMult);
+					float hoverSizeIncrease = 1.5f;
+					float starDrawSize = (system == _hoveredSystem) ? thisBrushDraw + hoverSizeIncrease : thisBrushDraw;
+					float highlightSize = thisBrushDraw + 4f; // Size of the selection circle
+
+					// Determine which highlight pen to use (if any)
+					Pen? currentHighlightPen = null;
+					if (selectedSet.Contains(system)) { currentHighlightPen = _multiSelectionPen; } // Multi-select highlight
+					else if (system == _selectedSystem) { currentHighlightPen = _selectionPen; }   // Single-select highlight
+
+					// Draw highlight circle if selected
+					if (currentHighlightPen != null)
+					{
+					g.DrawEllipse(currentHighlightPen, screenPosValue.X - highlightSize / 2, screenPosValue.Y - highlightSize / 2, highlightSize, highlightSize);
+					}
+
+					// Get the primary star of the system
+					Star? primaryStar = system.PrimaryStar;
+					if (primaryStar != null)
+					{
+					// Use the new method to get the brush based on star properties
+					Brush starBrush = GetStarBrush(primaryStar);
+
+		// Draw the star itself
+					g.FillEllipse(starBrush, screenPosValue.X - starDrawSize / 2, screenPosValue.Y - starDrawSize / 2, starDrawSize, starDrawSize);
+				}
+			}
+					
 
 
 				// --- Box select systems, mouse over systems for their name ---
 				if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); }
 				if (!_isBoxSelecting && _hoveredSystem != null && _systemScreenPositions.TryGetValue(_hoveredSystem, out Vector2 hoveredPos))
 				{
-					string text = _hoveredSystem.Name + " - " + _hoveredSystem.StarCode();
+					string text = _hoveredSystem.Name + " - " + _hoveredSystem.StarCode() + " - " + _hoveredSystem.SystemFacts();
 					SizeF textSize = g.MeasureString(text, _tooltipFont);
 					float padding = 4f;
 					float tooltipX = hoveredPos.X + 8f; float tooltipY = hoveredPos.Y - textSize.Height - 8f;

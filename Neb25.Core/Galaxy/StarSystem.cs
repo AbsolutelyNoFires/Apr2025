@@ -118,5 +118,22 @@ namespace Neb25.Core.Galaxy
 				return string.IsNullOrWhiteSpace(starCode) ? "Unknown Star Type" : starCode;
 		}
 
+
+		public string SystemFacts()
+		{
+			if (PrimaryStar == null)
+			{
+				return "No Primary Star";
+			}
+			string starFacts = PrimaryStar.StarFacts();
+			
+
+			if (AbundanceInt == 5) { starFacts += " - Exceptional abundance"; }
+			
+			if (hasQuaternary) { starFacts += " (+3)"; } else if (hasTrinary) { starFacts += " (+2)"; } else if (hasBinary) { starFacts += " (+1)"; }
+			return string.IsNullOrWhiteSpace(starFacts) ? "Unknown Star Type" : starFacts;
+
+		}
+
 	}
 }

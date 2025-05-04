@@ -881,6 +881,8 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_p == 8) { primarySolarMasses = 0.45; primarySolarRadius = 0.014; }
 				if (roll1d10_whitedwarf_randomise_p == 9) { primarySolarMasses = 0.4; primarySolarRadius = 0.015; }
 				if (roll1d10_whitedwarf_randomise_p == 10) { primarySolarMasses = 0.35; primarySolarRadius = 0.016; }
+				
+
 			}
 			if (binaryBasicType == "White Dwarf") {
 				if (roll1d10_whitedwarf_randomise_b == 1) { binarySolarMasses = 1.3; binarySolarRadius = 0.004; }
@@ -893,7 +895,8 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_b == 8) { binarySolarMasses = 0.45; binarySolarRadius = 0.014; }
 				if (roll1d10_whitedwarf_randomise_b == 9) { binarySolarMasses = 0.4; binarySolarRadius = 0.015; }
 				if (roll1d10_whitedwarf_randomise_b == 10) { binarySolarMasses = 0.35; binarySolarRadius = 0.016; }
-				}
+				
+			}
 			if (trinaryBasicType == "White Dwarf")
 			{
 				if (roll1d10_whitedwarf_randomise_t == 1) { trinarySolarMasses = 1.3; trinarySolarRadius = 0.004; }
@@ -919,7 +922,7 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_q == 8) { quaternarySolarMasses = 0.45; quaternarySolarRadius = 0.014; }
 				if (roll1d10_whitedwarf_randomise_q == 9) { quaternarySolarMasses = 0.4; quaternarySolarRadius = 0.015; }
 				if (roll1d10_whitedwarf_randomise_q == 10) { quaternarySolarMasses = 0.35; quaternarySolarRadius = 0.016; }
-           }
+			}
 
 
 			if (primaryBasicType == "White Dwarf")
@@ -934,6 +937,8 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_p_temp == 8) { primaryTempKelvin = 8000; }
 				if (roll1d10_whitedwarf_randomise_p_temp == 9) { primaryTempKelvin = 6000; }
 				if (roll1d10_whitedwarf_randomise_p_temp == 10) { primaryTempKelvin = 4000; }
+				primarySolarLuminosity = Math.Pow(primarySolarRadius, 2) * ((Math.Pow(primaryTempKelvin, 4)) / Math.Pow(5800, 4));
+
 			}
 			if (binaryBasicType == "White Dwarf")
 			{
@@ -947,6 +952,7 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_b_temp == 8) { binaryTempKelvin = 8000; }
 				if (roll1d10_whitedwarf_randomise_b_temp == 9) { binaryTempKelvin = 6000; }
 				if (roll1d10_whitedwarf_randomise_b_temp == 10) { binaryTempKelvin = 4000; }
+				binarySolarLuminosity = Math.Pow(binarySolarRadius, 2) * ((Math.Pow(binaryTempKelvin, 4)) / Math.Pow(5800, 4));
 			}
 			if (trinaryBasicType == "White Dwarf")
 			{
@@ -961,6 +967,7 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_t_temp == 8) { trinaryTempKelvin = 8000; }
 				if (roll1d10_whitedwarf_randomise_t_temp == 9) { trinaryTempKelvin = 6000; }
 				if (roll1d10_whitedwarf_randomise_t_temp == 10) { trinaryTempKelvin = 4000; }
+				trinarySolarLuminosity = Math.Pow(trinarySolarRadius, 2) * ((Math.Pow(trinaryTempKelvin, 4)) / Math.Pow(5800, 4));
 			}
 			if (quaternaryBasicType == "White Dwarf")
 			{
@@ -974,6 +981,7 @@ namespace Neb25.Core.Galaxy.Generators
 				if (roll1d10_whitedwarf_randomise_q_temp == 8) { quaternaryTempKelvin = 8000; }
 				if (roll1d10_whitedwarf_randomise_q_temp == 9) { quaternaryTempKelvin = 6000; }
 				if (roll1d10_whitedwarf_randomise_q_temp == 10) { quaternaryTempKelvin = 4000; }
+				quaternarySolarLuminosity = Math.Pow(quaternarySolarRadius, 2) * ((Math.Pow(quaternaryTempKelvin, 4)) / Math.Pow(5800, 4));
 			}
 
 
@@ -1044,57 +1052,61 @@ namespace Neb25.Core.Galaxy.Generators
 
 			if (primaryBasicType == "Brown Dwarf")
 			{
-				if (roll1d10_browndwarf_randomise_p_temp == 1) { primaryTempKelvin = 30000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 2) { primaryTempKelvin = 25000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 3) { primaryTempKelvin = 20000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 4) { primaryTempKelvin = 16000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 5) { primaryTempKelvin = 14000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 6) { primaryTempKelvin = 12000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 7) { primaryTempKelvin = 10000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 8) { primaryTempKelvin = 8000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 9) { primaryTempKelvin = 6000; }
-				if (roll1d10_browndwarf_randomise_p_temp == 10) { primaryTempKelvin = 4000; }
+				if (roll1d10_browndwarf_randomise_p_temp == 1) { primaryTempKelvin = 2200; }
+				if (roll1d10_browndwarf_randomise_p_temp == 2) { primaryTempKelvin = 2000; }
+				if (roll1d10_browndwarf_randomise_p_temp == 3) { primaryTempKelvin = 1800; }
+				if (roll1d10_browndwarf_randomise_p_temp == 4) { primaryTempKelvin = 1600; }
+				if (roll1d10_browndwarf_randomise_p_temp == 5) { primaryTempKelvin = 1400; }
+				if (roll1d10_browndwarf_randomise_p_temp == 6) { primaryTempKelvin = 1200; }
+				if (roll1d10_browndwarf_randomise_p_temp == 7) { primaryTempKelvin = 1000; }
+				if (roll1d10_browndwarf_randomise_p_temp == 8) { primaryTempKelvin = 900; }
+				if (roll1d10_browndwarf_randomise_p_temp == 9) { primaryTempKelvin = 800; }
+				if (roll1d10_browndwarf_randomise_p_temp == 10) { primaryTempKelvin = 700; }
+				primarySolarLuminosity = Math.Pow(primarySolarRadius, 2) * ((Math.Pow(primaryTempKelvin, 4)) / Math.Pow(5800, 4));
 			}
 			if (binaryBasicType == "Brown Dwarf")
 			{
-				if (roll1d10_browndwarf_randomise_b_temp == 1) { binaryTempKelvin = 30000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 2) { binaryTempKelvin = 25000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 3) { binaryTempKelvin = 20000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 4) { binaryTempKelvin = 16000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 5) { binaryTempKelvin = 14000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 6) { binaryTempKelvin = 12000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 7) { binaryTempKelvin = 10000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 8) { binaryTempKelvin = 8000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 9) { binaryTempKelvin = 6000; }
-				if (roll1d10_browndwarf_randomise_b_temp == 10) { binaryTempKelvin = 4000; }
-			}
+				if (roll1d10_browndwarf_randomise_b_temp == 1) { binaryTempKelvin = 2200; }
+				if (roll1d10_browndwarf_randomise_b_temp == 2) { binaryTempKelvin = 2000; }
+				if (roll1d10_browndwarf_randomise_b_temp == 3) { binaryTempKelvin = 1800; }
+				if (roll1d10_browndwarf_randomise_b_temp == 4) { binaryTempKelvin = 1600; }
+				if (roll1d10_browndwarf_randomise_b_temp == 5) { binaryTempKelvin = 1400; }
+				if (roll1d10_browndwarf_randomise_b_temp == 6) { binaryTempKelvin = 1200; }
+				if (roll1d10_browndwarf_randomise_b_temp == 7) { binaryTempKelvin = 1000; }
+				if (roll1d10_browndwarf_randomise_b_temp == 8) { binaryTempKelvin = 900; }
+				if (roll1d10_browndwarf_randomise_b_temp == 9) { binaryTempKelvin = 800; }
+				if (roll1d10_browndwarf_randomise_b_temp == 10) { binaryTempKelvin = 700; }
+				binarySolarLuminosity = Math.Pow(binarySolarRadius, 2) * ((Math.Pow(binaryTempKelvin, 4)) / Math.Pow(5800, 4));
+				}
 			if (trinaryBasicType == "Brown Dwarf")
 			{
 
-				if (roll1d10_browndwarf_randomise_t_temp == 1) { trinaryTempKelvin = 30000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 2) { trinaryTempKelvin = 25000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 3) { trinaryTempKelvin = 20000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 4) { trinaryTempKelvin = 16000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 5) { trinaryTempKelvin = 14000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 6) { trinaryTempKelvin = 12000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 7) { trinaryTempKelvin = 10000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 8) { trinaryTempKelvin = 8000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 9) { trinaryTempKelvin = 6000; }
-				if (roll1d10_browndwarf_randomise_t_temp == 10) { trinaryTempKelvin = 4000; }
-			}
+				if (roll1d10_browndwarf_randomise_t_temp == 1) { trinaryTempKelvin = 2200; }
+				if (roll1d10_browndwarf_randomise_t_temp == 2) { trinaryTempKelvin = 2000; }
+				if (roll1d10_browndwarf_randomise_t_temp == 3) { trinaryTempKelvin = 1800; }
+				if (roll1d10_browndwarf_randomise_t_temp == 4) { trinaryTempKelvin = 1600; }
+				if (roll1d10_browndwarf_randomise_t_temp == 5) { trinaryTempKelvin = 1400; }
+				if (roll1d10_browndwarf_randomise_t_temp == 6) { trinaryTempKelvin = 1200; }
+				if (roll1d10_browndwarf_randomise_t_temp == 7) { trinaryTempKelvin = 1000; }
+				if (roll1d10_browndwarf_randomise_t_temp == 8) { trinaryTempKelvin = 900; }
+				if (roll1d10_browndwarf_randomise_t_temp == 9) { trinaryTempKelvin = 800; }
+				if (roll1d10_browndwarf_randomise_t_temp == 10) { trinaryTempKelvin = 700; }
+				trinarySolarLuminosity = Math.Pow(trinarySolarRadius, 2) * ((Math.Pow(trinaryTempKelvin, 4)) / Math.Pow(5800, 4));
+				}
 			if (quaternaryBasicType == "Brown Dwarf")
 			{
-				if (roll1d10_browndwarf_randomise_q_temp == 1) { quaternaryTempKelvin = 30000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 2) { quaternaryTempKelvin = 25000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 3) { quaternaryTempKelvin = 20000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 4) { quaternaryTempKelvin = 16000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 5) { quaternaryTempKelvin = 14000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 6) { quaternaryTempKelvin = 12000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 7) { quaternaryTempKelvin = 10000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 8) { quaternaryTempKelvin = 8000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 9) { quaternaryTempKelvin = 6000; }
-				if (roll1d10_browndwarf_randomise_q_temp == 10) { quaternaryTempKelvin = 4000; }
-			}
+				if (roll1d10_browndwarf_randomise_q_temp == 1) { quaternaryTempKelvin = 2200; }
+				if (roll1d10_browndwarf_randomise_q_temp == 2) { quaternaryTempKelvin = 2000; }
+				if (roll1d10_browndwarf_randomise_q_temp == 3) { quaternaryTempKelvin = 1800; }
+				if (roll1d10_browndwarf_randomise_q_temp == 4) { quaternaryTempKelvin = 1600; }
+				if (roll1d10_browndwarf_randomise_q_temp == 5) { quaternaryTempKelvin = 1400; }
+				if (roll1d10_browndwarf_randomise_q_temp == 6) { quaternaryTempKelvin = 1200; }
+				if (roll1d10_browndwarf_randomise_q_temp == 7) { quaternaryTempKelvin = 1000; }
+				if (roll1d10_browndwarf_randomise_q_temp == 8) { quaternaryTempKelvin = 900; }
+				if (roll1d10_browndwarf_randomise_q_temp == 9) { quaternaryTempKelvin = 800; }
+				if (roll1d10_browndwarf_randomise_q_temp == 10) { quaternaryTempKelvin = 700; }
+				quaternarySolarLuminosity = Math.Pow(quaternarySolarRadius, 2) * ((Math.Pow(quaternaryTempKelvin, 4)) / Math.Pow(5800, 4));
+				}
 
 
 			// now moving to 
@@ -1102,7 +1114,7 @@ namespace Neb25.Core.Galaxy.Generators
 			// ONE / 2 SYSTEM AGE AND ABUNDANCE
 
 			double primaryAgeInGY = 0;
-			double primaryLifeInGY = new();
+			double primaryLifeInGY = 0;
 			double primaryLuminosityModFromAge = 1;
 
 			int roll1d10_primary_age_roll = seed.Next(1, 11);
@@ -1521,9 +1533,11 @@ namespace Neb25.Core.Galaxy.Generators
 					primaryAgeInGY = 10.0; // ten billion years ago; the entire universe today is 13.7
 				}
 			}
-			// TODO - implement the luminosoty mod
+			primarySolarLuminosity *= primaryLuminosityModFromAge;
 
-			// TODO - just freestyling this bit
+			
+
+			// TODO - just freestyling this bit, representing the dwarf and giant rows of this table
 			//if (binaryBasicType == "White Dwarf" || binaryBasicType == "Brown Dwarf")
 			if (primaryAgeInGY == 0) 
 			{
@@ -1531,7 +1545,11 @@ namespace Neb25.Core.Galaxy.Generators
 				primaryLifeInGY = 12 + (roll1d10_primary_age_roll * 4);
 			}
 
-			// TODO - 1.2.2  lifespans
+			// 1.2.2  lifespans
+			if (primaryLifeInGY==0) { primaryLifeInGY = (10 / (primarySolarMasses / primarySolarLuminosity)); }
+			
+
+
 
 			// 1.2.3 abundance
 			int roll2d10_abundance = seed.Next(1, 11) + seed.Next(1, 11);
@@ -1565,6 +1583,13 @@ namespace Neb25.Core.Galaxy.Generators
 			newPrimaryStar.SolarRadius = primarySolarRadius;
 			newPrimaryStar.SpectralClassNum = primarySpectralClassNum;
 
+			// the guide says they are all the same age in the system?
+			// so we set binary/ies to this also
+			newPrimaryStar.AgeInGY = primaryAgeInGY;
+			// similarly the expected lifespan of the primary is also the expected lifespan of the whole star system
+			newPrimaryStar.LifeInGY = primaryLifeInGY;
+
+
 			newStarSystem.hasBinary = hasBinary;
 			newPrimaryStar.IsParentToBinaries = hasBinary;
 
@@ -1585,6 +1610,8 @@ namespace Neb25.Core.Galaxy.Generators
 				newBinaryStar.SolarMasses = binarySolarMasses;
 				newBinaryStar.SolarRadius = binarySolarRadius;
 				newBinaryStar.SpectralClassNum = binarySpectralClassNum;
+				newBinaryStar.AgeInGY = primaryAgeInGY;
+				newBinaryStar.LifeInGY = primaryLifeInGY;
 
 			}
 			newStarSystem.hasTrinary = hasTrinary;
@@ -1605,6 +1632,8 @@ namespace Neb25.Core.Galaxy.Generators
 				newTrinaryStar.SolarMasses = trinarySolarMasses;
 				newTrinaryStar.SolarRadius = trinarySolarRadius;
 				newTrinaryStar.SpectralClassNum = trinarySpectralClassNum;
+				newTrinaryStar.AgeInGY = primaryAgeInGY;
+				newTrinaryStar.LifeInGY = primaryLifeInGY;
 
 			}
 			newStarSystem.hasQuaternary = hasQuaternary;
@@ -1625,10 +1654,39 @@ namespace Neb25.Core.Galaxy.Generators
 				newQuaternaryStar.SolarMasses = quaternarySolarMasses;
 				newQuaternaryStar.SolarRadius = quaternarySolarRadius;
 				newQuaternaryStar.SpectralClassNum = quaternarySpectralClassNum;
+				newQuaternaryStar.AgeInGY = primaryAgeInGY;
+				newQuaternaryStar.LifeInGY = primaryLifeInGY;
 
 			}
 
 
+			// rearrange the stars so the most massive is primary and least massive is furthest out
+			List<Star> sortedStars = newStarSystem.Stars.OrderByDescending(star => star.SolarMasses).ToList();
+			newStarSystem.PrimaryStar = sortedStars[0];
+			newStarSystem.PrimaryStar.ChildStars = new List<Star>();
+			newStarSystem.PrimaryStar.IsChildStar = false;
+			if (newStarSystem.hasBinary) { 
+				newStarSystem.binaryStarElement = sortedStars[1];
+				newStarSystem.binaryStarElement.ParentStar = newStarSystem.PrimaryStar;
+				newStarSystem.binaryStarElement.IsChildStar = true;
+				newStarSystem.PrimaryStar.IsParentToBinaries = true;
+				newStarSystem.PrimaryStar.ChildStars.Add(newStarSystem.binaryStarElement);
+			}
+			if (newStarSystem.hasTrinary)
+			{
+				newStarSystem.trinaryStarElement = sortedStars[2];
+				newStarSystem.trinaryStarElement.ParentStar = newStarSystem.PrimaryStar;
+				newStarSystem.trinaryStarElement.IsChildStar = true;
+				newStarSystem.PrimaryStar.ChildStars.Add(newStarSystem.trinaryStarElement);
+			}
+			if (newStarSystem.hasQuaternary)
+			{
+				newStarSystem.quaternaryStarElement = sortedStars[3];
+				newStarSystem.quaternaryStarElement.ParentStar = newStarSystem.PrimaryStar;
+				newStarSystem.quaternaryStarElement.IsChildStar = true;
+				newStarSystem.PrimaryStar.ChildStars.Add(newStarSystem.quaternaryStarElement);
+
+			}
 
 
 
