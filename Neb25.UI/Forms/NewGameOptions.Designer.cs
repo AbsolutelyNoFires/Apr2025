@@ -96,7 +96,7 @@
 			num_NGNumSys.Name = "num_NGNumSys";
 			num_NGNumSys.Size = new Size(120, 23);
 			num_NGNumSys.TabIndex = 6;
-			num_NGNumSys.Value = new decimal(new int[] { 750, 0, 0, 0 });
+			num_NGNumSys.Value = new decimal(new int[] { 75, 0, 0, 0 });
 			// 
 			// num_GalaxyArms
 			// 

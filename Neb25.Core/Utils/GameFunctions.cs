@@ -35,9 +35,9 @@ namespace Neb25.Core.Utils
 					continue;
 				}
 
-				float diffX = thisSys.Position.X - originStarSystem.Position.X;
-				float diffY = thisSys.Position.Y - originStarSystem.Position.Y;
-				float diffZ = thisSys.Position.Z - originStarSystem.Position.Z;
+				float diffX = thisSys.GalacticPosition.X - originStarSystem.GalacticPosition.X;
+				float diffY = thisSys.GalacticPosition.Y - originStarSystem.GalacticPosition.Y;
+				float diffZ = thisSys.GalacticPosition.Z - originStarSystem.GalacticPosition.Z;
 
 				// Calculate squared distance
 				double distSq = (diffX * diffX) + (diffY * diffY) + (diffZ * diffZ);

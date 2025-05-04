@@ -74,7 +74,7 @@ namespace Neb25.Core.Galaxy.Generators
 			{
 				// Find potential neighbors
 				// Note: NearbyStarSystems returns a dictionary sorted by distance
-				var neighbors = GameFunctions.NearbyStarSystems(originSystem, kNearest, 250); // Using radius 250 as per comment example
+				var neighbors = GameFunctions.NearbyStarSystems(originSystem, kNearest, 50); // Is there some max distance between stars beyond which a jump connection is impossible? maybe differs on star type etc. 50 here is galactic map units, maybe light years
 
 
 				if (!neighbors.Any()) continue; // Skip if no neighbors found within radius
@@ -192,7 +192,7 @@ namespace Neb25.Core.Galaxy.Generators
 						{
 							foreach (var s2 in components[j])
 							{
-								float distSq = Vector3.DistanceSquared(s1.Position, s2.Position);
+								float distSq = Vector3.DistanceSquared(s1.GalacticPosition, s2.GalacticPosition);
 								if (distSq < minDistanceSq)
 								{
 									minDistanceSq = distSq;

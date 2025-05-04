@@ -23,10 +23,10 @@ namespace Neb25.UI.Forms
 		private object? _selectedObject = null; // Store the currently selected object (Star, Planet, JumpSite)
 
 
-		public SystemView(StarSystem system)
+		public SystemView(StarSystem passedStarSystem)
 		{
 			InitializeComponent();
-			_system = system ?? throw new ArgumentNullException(nameof(system)); // Ensure system is not null
+			_system = passedStarSystem ?? throw new ArgumentNullException(nameof(passedStarSystem)); // Ensure system is not null
 
 			// --- Form Setup ---
 			this.Text = $"System View: {_system.Name}"; // Set form title
@@ -131,6 +131,8 @@ namespace Neb25.UI.Forms
 				DrawJumpSites(g);
 				// Draw Moons (relative to planets) - TODO
 				// Draw Ships, Stations, etc. later - TODO
+
+				DrawInfoPanel(g);
 			}
 
 			// --- Draw Selection Highlight ---
@@ -352,11 +354,26 @@ namespace Neb25.UI.Forms
 			}
 		}
 
+		private void DrawInfoPanel(Graphics g)
+		{
+			if (lblInfo != null)
+			{
+				UpdateInfoLabel();
+			}
+		}
+
 		private void UpdateInfoLabel()
 		{
 			if (_selectedObject == null)
 			{
-				lblInfo.Text = "System Information:\n--------------------\nSelect an object...";
+
+				string info = $"Looking at: {_system.Name}\n";
+				info += "--------------------\n";
+				info += $"Primary Star: {_system.PrimaryStar.BasicSpectralType}\n";
+				info += $"SolarMass: {Math.Round(_system.PrimaryStar.SolarMasses,2)}; SolarRadius: {Math.Round(_system.PrimaryStar.SolarRadius,2)}\n";
+				info += $"TempKelvin: {Math.Round(_system.PrimaryStar.TempKelvin, 2)}; SolarLuminosity: {Math.Round(_system.PrimaryStar.SolarLuminosity, 2)}\n";
+				info += $"{_system.StarCode()}\n";
+				lblInfo.Text = info;
 			}
 			else
 			{
@@ -367,7 +384,7 @@ namespace Neb25.UI.Forms
 				if (_selectedObject is Star star)
 				{
 					info += $"Name: {star.Name}\n";
-					info += $"Type: {star.Type}\n"; // Add more properties as needed
+					info += $"Type: {star.BasicSpectralType}\n"; // Add more properties as needed
 					info += $"Planets: {star.Planets?.Count ?? 0}\n";
 				}
 				else if (_selectedObject is Planet planet)

@@ -15,11 +15,11 @@ namespace Neb25.Core.Galaxy.Generators
 			float max_au = 1f;
 			if (parentStarSystem.PrimaryStar is not null)
 			{
-				if (parentStarSystem.PrimaryStar.Type == "Red Dwarf")
+				if (parentStarSystem.PrimaryStar.BasicSpectralType == "Red Dwarf")
 				{
 					max_au = 3f;
 				}
-				else if (parentStarSystem.PrimaryStar.Type == "Yellow Dwarf")
+				else if (parentStarSystem.PrimaryStar.BasicSpectralType == "Yellow Dwarf")
 				{
 				    max_au = 5f;
 				}

@@ -2,6 +2,7 @@
 {
 	public class Constants
 	{
+		public const float GalaxyRadius = 1000f;
 		// just some numbers we sometimes play with
 		// related to how many jump points are in a system
 		public const int MinSysJps = 1;

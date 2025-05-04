@@ -156,8 +156,8 @@ namespace Neb25.UI.Forms
 							string linkKey = system.Id.CompareTo(partnerSystem.Id) < 0 ? $"{system.Id}_{partnerSystem.Id}" : $"{partnerSystem.Id}_{system.Id}";
 							if (_drawnLinks.Add(linkKey))
 							{
-								Vector2? screenPos1 = WorldToScreen(system.Position, viewProjectionMatrix, pb.ClientSize);
-								Vector2? screenPos2 = WorldToScreen(partnerSystem.Position, viewProjectionMatrix, pb.ClientSize);
+								Vector2? screenPos1 = WorldToScreen(system.GalacticPosition, viewProjectionMatrix, pb.ClientSize);
+								Vector2? screenPos2 = WorldToScreen(partnerSystem.GalacticPosition, viewProjectionMatrix, pb.ClientSize);
 								if (screenPos1.HasValue) _systemScreenPositions[system] = screenPos1.Value;
 								if (screenPos2.HasValue) _systemScreenPositions[partnerSystem] = screenPos2.Value; // show the jump lane even when origin and partner are offscreen, to a certain number of pixels
 								int howFarAwayToStillShowJumpLanes = 1000; // pixels offscreen
@@ -193,7 +193,7 @@ namespace Neb25.UI.Forms
 					{
 						if (!_systemScreenPositions.TryGetValue(system, out Vector2 screenPosValue))
 						{
-							Vector2? screenPos = WorldToScreen(system.Position, viewProjectionMatrix, pb.ClientSize);
+							Vector2? screenPos = WorldToScreen(system.GalacticPosition, viewProjectionMatrix, pb.ClientSize);
 							if (screenPos.HasValue && IsValidScreenPoint(screenPos.Value, pb.ClientSize, 50))
 							{
 								screenPosValue = screenPos.Value;
@@ -227,7 +227,7 @@ namespace Neb25.UI.Forms
 				if (_isBoxSelecting) { g.DrawRectangle(_selectionBoxPen, _selectionRectCurrent); }
 				if (!_isBoxSelecting && _hoveredSystem != null && _systemScreenPositions.TryGetValue(_hoveredSystem, out Vector2 hoveredPos))
 				{
-					string text = _hoveredSystem.Name;
+					string text = _hoveredSystem.Name + " - " + _hoveredSystem.StarCode();
 					SizeF textSize = g.MeasureString(text, _tooltipFont);
 					float padding = 4f;
 					float tooltipX = hoveredPos.X + 8f; float tooltipY = hoveredPos.Y - textSize.Height - 8f;
@@ -623,7 +623,7 @@ namespace Neb25.UI.Forms
 				{
 					// Single click select
 					_selectedSystem = _potentialClickTarget;
-					_cameraTarget = _selectedSystem.Position;
+					_cameraTarget = _selectedSystem.GalacticPosition;
 					_selectedSystemsList.Clear();
 					needsRedraw = true;
 					UpdateInfoPanel(); // Show/Update panel for single selection

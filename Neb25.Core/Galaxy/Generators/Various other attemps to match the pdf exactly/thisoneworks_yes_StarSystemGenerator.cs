@@ -2,8 +2,8 @@
 
 namespace Neb25.Core.Galaxy.Generators
 {
-	
-	public class StarSystemGenerator
+	/*
+	public class thisoneworks_yes_StarSystemGenerator
 	{
 		public static StarSystem GenerateStarSystem(Galaxy galaxy, Random seed)
 		{
@@ -1386,23 +1386,26 @@ namespace Neb25.Core.Galaxy.Generators
 				primaryLifeInGY = 23.0;
 				if (roll1d10_primary_age_roll == 1)
 				{
+
+					// about here is where i think i got to 
+					// before quitting
 					primaryAgeInGY = 1.0;
+					primaryLuminosityModFromAge = 0.6;
+				}
+				else if (roll1d10_primary_age_roll == 2)
+				{
+					primaryAgeInGY = 2.0;
+					primaryLuminosityModFromAge = 0.7;
+				}
+				else if (roll1d10_primary_age_roll == 3)
+				{
+					primaryAgeInGY = 3.0;
 					primaryLuminosityModFromAge = 0.8;
 				}
-				else if (roll1d10_primary_age_roll == 2)
-				{
-					primaryAgeInGY = 2.0;
-					primaryLuminosityModFromAge = 0.85;
-				}
-				else if (roll1d10_primary_age_roll == 3)
-				{
-					primaryAgeInGY = 3.0;
-					primaryLuminosityModFromAge = 0.9;
-				}
 				else if (roll1d10_primary_age_roll == 4)
 				{
 					primaryAgeInGY = 4.0;
-					primaryLuminosityModFromAge = 0.95;
+					primaryLuminosityModFromAge = 0.9;
 				}
 				else if (roll1d10_primary_age_roll == 5)
 				{
@@ -1419,134 +1422,22 @@ namespace Neb25.Core.Galaxy.Generators
 				else if (roll1d10_primary_age_roll == 8)
 				{
 					primaryAgeInGY = 8.0;
-				}
-				else if (roll1d10_primary_age_roll == 9)
-				{
-					primaryAgeInGY = 9.0;
-				}
-				else if (roll1d10_primary_age_roll == 10)
-				{
-					primaryAgeInGY = 10.0;
-					primaryLuminosityModFromAge = 1.05;
-				}
-			}
-			else if (primaryBasicType == "Spectral Class K" && primarySpectralClassNum >= 5 && primarySpectralClassNum <= 9) // k5-k9
-			{
-				primaryLifeInGY = 42.0;
-				if (roll1d10_primary_age_roll == 1)
-				{
-					primaryAgeInGY = 1.0;
-					primaryLuminosityModFromAge = 0.9;
-				}
-				else if (roll1d10_primary_age_roll == 2)
-				{
-					primaryAgeInGY = 2.0;
-					primaryLuminosityModFromAge = 0.95;
-				}
-				else if (roll1d10_primary_age_roll == 3)
-				{
-					primaryAgeInGY = 3.0;
-				}
-				else if (roll1d10_primary_age_roll == 4)
-				{
-					primaryAgeInGY = 4.0;
-				}
-				else if (roll1d10_primary_age_roll == 5)
-				{
-					primaryAgeInGY = 5.0;
-				}
-				else if (roll1d10_primary_age_roll == 6)
-				{
-					primaryAgeInGY = 6.0;
-				}
-				else if (roll1d10_primary_age_roll == 7)
-				{
-					primaryAgeInGY = 7.0;
-				}
-				else if (roll1d10_primary_age_roll == 8)
-				{
-					primaryAgeInGY = 8.0;
-				}
-				else if (roll1d10_primary_age_roll == 9)
-				{
-					primaryAgeInGY = 9.0;
-				}
-				else if (roll1d10_primary_age_roll == 10)
-				{
-					primaryAgeInGY = 10.0;
-				}
-			}
-			else if (primaryBasicType == "Spectral Class M" && primarySpectralClassNum >= 0 && primarySpectralClassNum <= 9) // m0-m9
-			{
-				primaryLifeInGY = 50;
-				if (roll1d10_primary_age_roll == 1)
-				{
-					primaryAgeInGY = 1.0;
 					primaryLuminosityModFromAge = 1.1;
 				}
-				else if (roll1d10_primary_age_roll == 2)
-				{
-					primaryAgeInGY = 2.0;
-				}
-				else if (roll1d10_primary_age_roll == 3)
-				{
-					primaryAgeInGY = 3.0;
-				}
-				else if (roll1d10_primary_age_roll == 4)
-				{
-					primaryAgeInGY = 4.0;
-				}
-				else if (roll1d10_primary_age_roll == 5)
-				{
-					primaryAgeInGY = 5.0;
-				}
-				else if (roll1d10_primary_age_roll == 6)
-				{
-					primaryAgeInGY = 6.0;
-				}
-				else if (roll1d10_primary_age_roll == 7)
-				{
-					primaryAgeInGY = 7.0;
-				}
-				else if (roll1d10_primary_age_roll == 8)
-				{
-					primaryAgeInGY = 8.0;
-				}
 				else if (roll1d10_primary_age_roll == 9)
 				{
 					primaryAgeInGY = 9.0;
+					primaryLuminosityModFromAge = 1.2;
 				}
 				else if (roll1d10_primary_age_roll == 10)
 				{
-					primaryAgeInGY = 10.0; // ten billion years ago; the entire universe today is 13.7
+					primaryAgeInGY = 10.0;
+					primaryLuminosityModFromAge = 1.3;
 				}
 			}
-			// TODO - implement the luminosoty mod
-
-			// TODO - just freestyling this bit
-			//if (binaryBasicType == "White Dwarf" || binaryBasicType == "Brown Dwarf")
-			if (primaryAgeInGY == 0) 
-			{
-				primaryAgeInGY = roll1d10_primary_age_roll + 3;
-				primaryLifeInGY = 12 + (roll1d10_primary_age_roll * 4);
-			}
-
-			// TODO - 1.2.2  lifespans
-
-			// 1.2.3 abundance
-			int roll2d10_abundance = seed.Next(1, 11) +.Next(1, 11);
-			string AbundanceDesc = string.Empty;
-			int AbundanceInt = 0;
-			if (roll2d10_abundance <= 8) { AbundanceInt = 5; AbundanceDesc = "Exceptional"; }
-			else if (roll2d10_abundance <= 11) { AbundanceInt = 4; AbundanceDesc = "High"; }
-			else if (roll2d10_abundance <= 17) { AbundanceInt = 3; AbundanceDesc = "Normal"; }
-			else if (roll2d10_abundance <= 20) { AbundanceInt = 2; AbundanceDesc = "Poor"; }
-			else { AbundanceInt = 1; AbundanceDesc = "Depleted"; }
 
 
 
-			// PART I SYSTEM DATA 10
-			// ONE / 3 MULTIPLE STARS
 
 
 			//after we've finished implementing every step of the pdf
@@ -1554,8 +1445,7 @@ namespace Neb25.Core.Galaxy.Generators
 			newStarSystem.PrimaryStar = newPrimaryStar;
 			newStarSystem.Stars.Add(newPrimaryStar);
 
-			newStarSystem.AbundanceDesc = AbundanceDesc;
-			newStarSystem.AbundanceInt = AbundanceInt;
+
 			newPrimaryStar.BasicSpectralType = primaryBasicType;
 			newPrimaryStar.SizeCode = primarySizeCode;
 			newPrimaryStar.SizeCodeNum = primarySizeCodeNum;
@@ -1655,11 +1545,6 @@ namespace Neb25.Core.Galaxy.Generators
 			};
 
 
-
-
-
-
-
 			int numJumpSites = 6; //per sys
 								  // now generate jump sites
 			for (int i = 0; i < numJumpSites; i++)
@@ -1667,20 +1552,7 @@ namespace Neb25.Core.Galaxy.Generators
 				JumpSite newJumpSite = JumpSiteGenerator.GenerateJumpSite(newStarSystem, seed);
 			}
 
-
-
-
-
-
 			//now generate planets
-
-			for (int i = 0; i <= 3; i++)
-			{
-				Planet p = PlanetGenerator.GeneratePlanet(newPrimaryStar, seed);
-				p.Radius = 100 * i;
-			}
-
-
 			return newStarSystem;
 		}
 
@@ -1844,5 +1716,5 @@ namespace Neb25.Core.Galaxy.Generators
 
 
 	}
-	
+	*/
 }

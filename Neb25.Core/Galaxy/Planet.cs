@@ -72,14 +72,7 @@
 		/// </summary>
 		public List<Moon> Moons { get; set; }
 
-		/// <summary>
-		/// Default constructor for serialization.
-		/// </summary>
-		public Planet()
-		{
-			Moons = new List<Moon>();
-		}
-
+		
 		/// <summary>
 		/// Constructs a new planet orbiting the specified parent star.
 		/// </summary>
