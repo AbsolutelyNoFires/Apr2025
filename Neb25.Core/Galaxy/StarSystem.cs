@@ -92,7 +92,7 @@ namespace Neb25.Core.Galaxy
 			hasTrinary = false;
 			hasQuaternary = false;
 			AbundanceInt = 0;
-			AbundanceDesc = "There's nothing."
+			AbundanceDesc = "There's nothing.";
 
 
 

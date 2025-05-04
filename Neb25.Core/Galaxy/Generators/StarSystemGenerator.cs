@@ -1534,7 +1534,7 @@ namespace Neb25.Core.Galaxy.Generators
 			// TODO - 1.2.2  lifespans
 
 			// 1.2.3 abundance
-			int roll2d10_abundance = seed.Next(1, 11) +.Next(1, 11);
+			int roll2d10_abundance = seed.Next(1, 11) + seed.Next(1, 11);
 			string AbundanceDesc = string.Empty;
 			int AbundanceInt = 0;
 			if (roll2d10_abundance <= 8) { AbundanceInt = 5; AbundanceDesc = "Exceptional"; }
